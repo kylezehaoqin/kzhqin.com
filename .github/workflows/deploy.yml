@@ -1,0 +1,36 @@
+# Push to main = live on https://kzhqin.com in about a minute.
+# The deploy key can only run deploy-gate for this site (see kylezehaoqin/infra).
+name: deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: deploy-kzhqin.com
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the page
+        run: |
+          test -f index.html
+          grep -q '<title>' index.html
+          # Every local file that index.html links to must exist.
+          for f in $(grep -oE '(href|src)="[^":#?]+"' index.html | cut -d'"' -f2); do
+            test -e "$f" || { echo "missing: $f"; exit 1; }
+          done
+      - name: Deploy
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          tar -czf - --exclude=./.git --exclude=./.github --exclude=./README.md . \
+            | ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+                deploy@89.116.191.153 "$GITHUB_SHA"
