@@ -2,7 +2,7 @@
 // complete HTML without this script. Pure logic lives in src/lib (unit-tested).
 import { createFinderKeys, inTab, TABS, type Tab } from "../lib/finderkeys";
 import { rank } from "../lib/fuzzy";
-import { createKeymap, LEADER_GROUPS, LEADER_KEYS, type Action, type Group, type Page } from "../lib/keys";
+import { createKeymap, LEADER_GROUPS, LEADER_KEYS, MODIFIER_KEYS, type Action, type Group, type Page } from "../lib/keys";
 import { scrollLabel } from "../lib/scrollpos";
 import type { SearchEntry } from "../lib/search";
 
@@ -228,7 +228,8 @@ function runCurrent() {
   else if (pick.href) location.href = pick.href;
 }
 q?.addEventListener("input", () => { cur = 0; renderResults(); });
-q?.addEventListener("keydown", (e) => {
+q?.addEventListener("keydown", onFinderKey);
+function onFinderKey(e: KeyboardEvent) {
   const a = fkeys.feed({ key: e.key, ctrl: e.ctrlKey, meta: e.metaKey, alt: e.altKey });
   if (!a) return;
   e.preventDefault();
@@ -241,7 +242,7 @@ q?.addEventListener("keydown", (e) => {
     case "mode": setFinderMode(a.to); break;
     case "close": closeFinder(); break;
   }
-});
+}
 tabsEl?.addEventListener("click", (e) => {
   const b = (e.target as Element).closest<HTMLElement>("[data-tab]");
   if (b) { setTab(b.dataset.tab as Tab); q?.focus(); }
@@ -376,8 +377,13 @@ function perform(a: Action) {
 }
 
 document.addEventListener("keydown", (e) => {
-  if (e.key !== "K" || e.metaKey || e.ctrlKey || e.altKey) closeCard(); // any other key closes the hover card
-  if (picker && !picker.hidden) return; // the finder handles its own keys
+  // Any other key closes the hover card (a lone Shift before K does not).
+  if (!MODIFIER_KEYS.has(e.key) && (e.key !== "K" || e.metaKey || e.ctrlKey || e.altKey)) closeCard();
+  if (picker && !picker.hidden) {
+    // The input handles its own keys. If Tab or a click moved focus elsewhere, take it back first.
+    if (e.target !== q) { q?.focus(); onFinderKey(e); }
+    return;
+  }
   const t = e.target as HTMLElement;
   const action = keymap.feed({
     key: e.key,

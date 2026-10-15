@@ -200,6 +200,20 @@ test.describe("finder modes and tabs", () => {
     expect(stillFocused).toBe(false);
   });
 
+  test("Esc still works after Tab or a click moves focus inside the finder", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press(":");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#picker")).toBeHidden();
+    await page.keyboard.press(":");
+    await page.locator("#finder-preview").click();
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#picker")).toBeHidden();
+  });
+
   test("a click on a tab selects it", async ({ page }) => {
     await page.goto("/");
     await page.keyboard.press(":");
@@ -397,6 +411,23 @@ test.describe("page keys", () => {
     await expect(card).toContainText("gx");
     await page.keyboard.press("j");
     await expect(card).toBeHidden();
+  });
+
+  test("keys typed with a real Shift work: z Shift+M, ␣g Shift+B, Shift+K twice", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    await page.keyboard.press("z"); await page.keyboard.press("Shift+M");
+    await expect(page.locator(".fold:not(.folded)")).toHaveCount(0);
+    await page.keyboard.press("z"); await page.keyboard.press("Shift+R");
+    await expect(page.locator(".fold.folded")).toHaveCount(0);
+    const popup = page.waitForEvent("popup");
+    await page.keyboard.press(" "); await page.keyboard.press("g"); await page.keyboard.press("Shift+B");
+    expect((await popup).url()).toContain("/blob/main/src/content/projects/deuce.md");
+    await page.goto("/projects");
+    await page.keyboard.press("j");
+    await page.keyboard.press("Shift+K");
+    await expect(page.locator("#hovercard")).toBeVisible();
+    await page.keyboard.press("Shift+K");
+    await expect(page.locator("#hovercard")).toBeHidden();
   });
 
   test("K with no row selected does nothing; : closes an open card", async ({ page }) => {

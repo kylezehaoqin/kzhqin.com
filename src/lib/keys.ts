@@ -52,6 +52,8 @@ export const SEQUENCES: Record<string, Action> = {
   zR: { type: "unfoldAll" },
 };
 const PREFIXES = new Set(Object.keys(SEQUENCES).map((s) => s[0]));
+// A real keyboard sends a keydown for Shift itself before "M", "B", "K", or "?".
+export const MODIFIER_KEYS = new Set(["Shift", "Control", "Alt", "Meta", "CapsLock", "AltGraph"]);
 
 type Entry = { label: string; action: Action };
 export const LEADER_KEYS: Record<string, Entry> = {
@@ -79,6 +81,7 @@ export function createKeymap() {
   function feed(e: KeyInput): Action | null {
     // Browser shortcuts and typing always win over the easter egg.
     if (e.meta || e.ctrl || e.alt || e.inEditable) return null;
+    if (MODIFIER_KEYS.has(e.key)) return null; // keep any pending prefix or leader group
 
     if (e.key === "Escape") {
       pending = "";

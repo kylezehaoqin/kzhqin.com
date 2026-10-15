@@ -155,4 +155,21 @@ describe("keymap", () => {
     expect(m.group()).toBe("");
     expect(m.mode()).toBe("NORMAL");
   });
+
+  it("a modifier key alone (Shift before M) changes nothing", () => {
+    const m = createKeymap();
+    for (const mod of ["Shift", "Control", "Alt", "Meta", "CapsLock", "AltGraph"]) {
+      m.feed(k("z"));
+      expect(m.feed(k(mod))).toBeNull();
+      expect(m.pending()).toBe("z");
+      m.feed(k("Escape"));
+    }
+    m.feed(k("z")); m.feed(k("Shift"));
+    expect(m.feed(k("M"))).toEqual({ type: "foldAll" });
+    m.feed(k(" ")); m.feed(k("g")); m.feed(k("Shift"));
+    expect(m.group()).toBe("g");
+    expect(m.feed(k("B"))).toEqual({ type: "source" });
+    m.feed(k(" ")); m.feed(k("Shift"));
+    expect(m.feed(k("?"))).toEqual({ type: "help" });
+  });
 });
