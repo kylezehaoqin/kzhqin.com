@@ -257,6 +257,8 @@ const wk = $("whichkey"), wkGrid = $("wk-grid"), wkTitle = $("wk-title"), wkFoot
 const HELP: [string, string][] = [
   ["j k", "next / prev"], ["gg G", "top / bottom"], ["⏎ l", "open"], ["h", "back"],
   ["H L", "prev / next buffer"], ["1-5", "go to buffer"], [": /", "find anything"],
+  ["gx", "open link"], ["]] [[", "next / prev section"], ["K", "hover card"], ["yy", "copy link"],
+  ["za zM zR", "fold"], ["␣gB", "source on GitHub"], ["␣uz", "zen mode"],
   ["␣", "leader menu"], ["t", "theme"], ["esc", "close / clear"],
 ];
 function openWhich(kind: "leader" | "help" | Group) {

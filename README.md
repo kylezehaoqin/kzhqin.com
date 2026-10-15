@@ -45,4 +45,4 @@ Skills on the home and about pages live in `src/data/skills.ts`. Each domain lis
 
 GitHub Actions runs every check above on each push. On `main`, it sends only `dist/` to the VPS, where `deploy-gate` switches the site over atomically and rolls back on its own if the smoke check fails. To roll back by hand, re-run the Actions job of the last good commit. Server side: `MANUAL.md` in the private `kylezehaoqin/infra` repo.
 
-Try pressing `:` on the site.
+Try pressing `:` on the site. Then press `?`. The finder has INSERT and NORMAL modes, like Telescope.

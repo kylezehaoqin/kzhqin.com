@@ -121,6 +121,12 @@ test.describe("finder and keys", () => {
     await page.keyboard.press("?");
     await expect(page.locator("#wk-title")).toHaveText("keymaps");
   });
+
+  test("? lists the new keys", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press("?");
+    for (const k of ["gx", "]] [[", "K", "yy", "za zM zR", "␣gB", "␣uz"]) await expect(page.locator("#wk-grid")).toContainText(k);
+  });
 });
 
 test.describe("theme, notes, and status bar", () => {
