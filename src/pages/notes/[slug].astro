@@ -1,0 +1,43 @@
+---
+import { render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { getNotes, isDraft, longDate, readingMinutes, type Note } from "../../lib/content";
+
+export async function getStaticPaths() {
+  const notes = await getNotes(); // newest first
+  return notes.map((note, i) => ({
+    params: { slug: note.id },
+    props: { note, newer: notes[i - 1], older: notes[i + 1] },
+  }));
+}
+
+interface Props { note: Note; newer?: Note; older?: Note }
+const { note, newer, older } = Astro.props;
+const { Content } = await render(note);
+const { title, date, updated, kind, tags, summary } = note.data;
+---
+<Base title={title} description={summary} current="note" noteSlug={note.id} type="article">
+  <main>
+    <article class="post">
+      <a class="back" href="/notes">← all notes</a>
+      <header>
+        <div class="meta">
+          <time datetime={date.toISOString()}>{longDate(date)}</time>
+          {updated && <span>updated {longDate(updated)}</span>}
+          <span>{readingMinutes(note.body)} min read</span>
+          <span class={kind === "finding" ? "chip" : "chip ghost"}>{kind}</span>
+          {tags.map((t) => <span class="chip ghost">{t}</span>)}
+          {isDraft(note) && <span class="chip draft">draft</span>}
+        </div>
+        <h1>{title}</h1>
+      </header>
+      <div class="prose"><Content /></div>
+      {(older || newer) && (
+        <nav class="pager" aria-label="More notes">
+          {older && <a class="nav-item" href={`/notes/${older.id}`}><span>← older</span><b>{older.data.title}</b></a>}
+          {newer && <a class="nav-item next" href={`/notes/${newer.id}`}><span>newer →</span><b>{newer.data.title}</b></a>}
+        </nav>
+      )}
+    </article>
+  </main>
+</Base>

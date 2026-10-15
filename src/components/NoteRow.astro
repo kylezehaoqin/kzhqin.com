@@ -1,0 +1,13 @@
+---
+import { isDraft, monthYear, type Note } from "../lib/content";
+interface Props { note: Note }
+const { note } = Astro.props;
+const { title, kind, date, summary } = note.data;
+---
+<li>
+  <a class="nrow nav-item" href={`/notes/${note.id}`}>
+    <span class="t">{title} <span class={kind === "finding" ? "chip" : "chip ghost"}>{kind}</span>{isDraft(note) && <span class="chip draft">draft</span>}</span>
+    <span class="d">{monthYear(date)}</span>
+    <span class="ex">{summary}</span>
+  </a>
+</li>

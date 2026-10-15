@@ -25,7 +25,19 @@ Because `docs/` is not in git, it exists only on Kyle's Mac. Never reference its
 2. The workflow checks the page, then sends a `tar.gz` over SSH to `deploy@89.116.191.153`.
 3. On the VPS, sshd allows that key to run only `deploy-gate static kzhqin.com`. The gate checks the upload, unpacks it into `/srv/kzhqin.com/releases/<sha>`, and switches the `current` symlink. If the smoke check fails, it switches back.
 
-**Only the files named in the workflow's `tar` line are published.** Today that is `index.html style.css`; after the Astro move it is `dist/`. Everything else in this repo (this file, `docs/`) stays private. When you add a site file, add it to that line. Never widen it to `.`.
+**Only `dist/` (the Astro build output) is published:** `tar -czf - -C dist .`. Everything else in this repo stays off the site. But the repo is **public on GitHub**, so anything committed is readable there; `docs/` and `src/content/drafts/` are gitignored for that reason.
+
+The workflow has two jobs: `check` (every push and PR: `astro check`, Vitest, build, `verify-dist`, Playwright on a fixture build) and `deploy` (main only, ships the artifact `check` built).
+
+## Before you commit
+
+```bash
+if npm run check && npm test && npm run build && npm run verify && npm run build:e2e && npm run test:e2e; then
+  git add -A && git commit -m "…"
+fi
+```
+
+Structure and content model: `README.md` (how to write a note) and `docs/design/2026-10-14-astro-spec.md`.
 
 ## Verify and roll back
 

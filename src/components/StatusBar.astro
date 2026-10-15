@@ -1,0 +1,23 @@
+---
+interface Props { current: string; noteSlug?: string }
+const { current, noteSlug } = Astro.props;
+const bufs = [
+  { name: "home", href: "/" },
+  { name: "projects", href: "/projects" },
+  { name: "notes", href: "/notes" },
+  { name: "about", href: "/about" },
+  ...(noteSlug ? [{ name: noteSlug, href: `/notes/${noteSlug}` }] : []),
+];
+const active = current === "note" ? noteSlug : current;
+---
+<div class="sl" id="statusbar">
+  <span class="pl mode" id="mode" data-m="NORMAL" aria-hidden="true">NORMAL</span>
+  <nav class="bufs" aria-label="Pages">
+    {bufs.map((b, i) => <a class="buf" href={b.href} aria-current={b.name === active ? "page" : undefined}>{i + 1} {b.name}</a>)}
+  </nav>
+  <span class="pend" id="pending" aria-hidden="true"></span>
+  <span class="grow"></span>
+  <span class="pr pink hide-sm">♡ open to work</span>
+  <span class="pr blue hide-sm" id="clock" aria-label="Kyle's local time in San Jose">San Jose</span>
+  <span class="pr orange" id="pos" aria-hidden="true">Top</span>
+</div>

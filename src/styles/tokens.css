@@ -1,0 +1,64 @@
+/* Design tokens. Paper (light) on :root; night (dark) from the system setting
+   unless the visitor picked a theme (data-theme), and again for an explicit pick.
+   Source: prototype v3 + docs/design/2026-10-14-astro-spec.md section 2.1. */
+:root {
+  --bg: #fcfcfc;
+  --surface: #ffffff;
+  --fg: #161616;
+  --muted: #6b6b6b;
+  --faint: #707070;
+  --line: #e6e6e6;
+  --soft: #f3f3f3;
+  --dot-rgb: 0, 0, 0;
+  --dot-a: 0.08;
+  --glow-a: 0.3;
+  --acc: #f0561d;
+  --acc-2: #d9700f; /* gradient end: 3.26:1 on paper (large text) */
+  --acc-text: #b93d0b; /* accent as text: >= 4.5:1 on paper, surface, and chip tint */
+  --acc-tint: rgba(240, 86, 29, 0.09);
+  --acc-glow: rgba(240, 86, 29, 0.45);
+  --ok: #2bb36b;
+
+  /* Status bar: a terminal look in both themes. */
+  --sl-bg: #1f2130;
+  --sl-fg: #c9cde0;
+  --sl-dim: #9196ad;
+  --sl-tab: #3a3f5c;
+  --sl-ink: #1f2130;
+  --sl-green: #6ee7a0;
+  --sl-pink: #ff92cf;
+  --sl-blue: #9ab8ff;
+  --sl-orange: #ffb877;
+  --sl-purple: #c3a6ff;
+
+  --font-display: "Nunito", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  --font-body: "Geist Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --col: 720px;
+  --sl-h: 26px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101010; --surface: #161616; --fg: #ededed; --muted: #9a9a9a; --faint: #858585;
+    --line: #262626; --soft: #1b1b1b; --dot-rgb: 255, 255, 255; --dot-a: 0.07; --glow-a: 0.32;
+    --acc: #ff7a45; --acc-2: #ffb15c; --acc-text: #ff7a45; --acc-tint: rgba(255, 122, 69, 0.12); --acc-glow: rgba(255, 122, 69, 0.55);
+    --sl-bg: #181a26;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101010; --surface: #161616; --fg: #ededed; --muted: #9a9a9a; --faint: #858585;
+  --line: #262626; --soft: #1b1b1b; --dot-rgb: 255, 255, 255; --dot-a: 0.07; --glow-a: 0.32;
+  --acc: #ff7a45; --acc-2: #ffb15c; --acc-text: #ff7a45; --acc-tint: rgba(255, 122, 69, 0.12); --acc-glow: rgba(255, 122, 69, 0.55);
+  --sl-bg: #181a26;
+  color-scheme: dark;
+}
+
+/* Signal (cyan) accent, chosen with ":accent signal". */
+:root[data-accent="signal"] { --acc: #0e8fb8; --acc-2: #1f9c86; --acc-text: #0b7193; --acc-tint: rgba(14, 143, 184, 0.09); --acc-glow: rgba(14, 143, 184, 0.4); }
+@media (prefers-color-scheme: dark) {
+  :root[data-accent="signal"]:not([data-theme="light"]) { --acc: #7fd6ff; --acc-2: #b6f0d9; --acc-text: #7fd6ff; --acc-tint: rgba(127, 214, 255, 0.1); --acc-glow: rgba(127, 214, 255, 0.5); }
+}
+:root[data-theme="dark"][data-accent="signal"] { --acc: #7fd6ff; --acc-2: #b6f0d9; --acc-text: #7fd6ff; --acc-tint: rgba(127, 214, 255, 0.1); --acc-glow: rgba(127, 214, 255, 0.5); }

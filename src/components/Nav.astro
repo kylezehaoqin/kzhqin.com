@@ -1,0 +1,20 @@
+---
+interface Props { current: string }
+const { current } = Astro.props;
+const here = (p: string) => (current === p || (p === "notes" && current === "note") ? "page" : undefined);
+---
+<div class="nav-band">
+  <div class="wrap">
+    <nav class="nav" aria-label="Main">
+      <a class="brand" href="/"><i aria-hidden="true"></i>Kyle Qin</a>
+      <ul>
+        <li><a href="/projects" aria-current={here("projects")}>Projects</a></li>
+        <li><a href="/notes" aria-current={here("notes")}>Notes</a></li>
+        <li class="hide-sm"><a href="/about" aria-current={here("about")}>About</a></li>
+        <li aria-hidden="true"><span class="sep"></span></li>
+        <li><button class="icon-btn" id="theme-btn" type="button" aria-label="Switch between light and dark theme">◐</button></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+</div>

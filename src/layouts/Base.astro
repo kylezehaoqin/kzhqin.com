@@ -1,0 +1,78 @@
+---
+import "@fontsource/nunito/600.css";
+import "@fontsource/nunito/700.css";
+import "@fontsource/nunito/800.css";
+import "@fontsource/geist-sans/400.css";
+import "@fontsource/geist-sans/500.css";
+import "@fontsource/geist-sans/600.css";
+import "@fontsource/geist-mono/400.css";
+import "@fontsource/geist-mono/500.css";
+import "@fontsource/geist-mono/600.css";
+import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import StatusBar from "../components/StatusBar.astro";
+import Finder from "../components/Finder.astro";
+import WhichKey from "../components/WhichKey.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  current: "home" | "projects" | "notes" | "about" | "note" | "404";
+  noteSlug?: string;
+  type?: "website" | "article";
+}
+const {
+  title,
+  description = "Kyle Qin, full-stack developer in San Jose. Projects and notes on what I build and learn.",
+  current,
+  noteSlug,
+  type = "website",
+} = Astro.props;
+const fullTitle = title ? `${title} · Kyle Qin` : "Kyle Qin";
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title="Kyle Qin: notes" href="/rss.xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="color-scheme" content="light dark" />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+    <script is:inline>
+      // Apply a saved theme and accent before first paint, so there is no flash.
+      try {
+        var t = localStorage.getItem("theme"), a = localStorage.getItem("accent");
+        if (t === "paper") document.documentElement.dataset.theme = "light";
+        if (t === "night") document.documentElement.dataset.theme = "dark";
+        if (a === "signal") document.documentElement.dataset.accent = "signal";
+      } catch (e) {}
+    </script>
+  </head>
+  <body data-page={current}>
+    <canvas id="dots" aria-hidden="true"></canvas>
+    <div class="layer">
+      <Nav current={current} />
+      <div class="wrap">
+        <slot />
+        <Footer />
+      </div>
+    </div>
+    <StatusBar current={current} noteSlug={noteSlug} />
+    <Finder />
+    <WhichKey />
+    <script>
+      import "../scripts/site.ts";
+    </script>
+  </body>
+</html>

@@ -1,0 +1,45 @@
+---
+import fs from "node:fs";
+import Base from "../layouts/Base.astro";
+import ProjectRow from "../components/ProjectRow.astro";
+import NoteRow from "../components/NoteRow.astro";
+import { getNotes, getProjects } from "../lib/content";
+
+const projects = (await getProjects()).filter((p) => p.data.featured).slice(0, 4);
+const notes = (await getNotes()).slice(0, 3);
+const hasResume = fs.existsSync("public/resume.pdf");
+---
+<Base current="home">
+  <main>
+    <section class="hero">
+      <span class="status"><i aria-hidden="true"></i>Open to full-stack roles · San Jose, CA</span>
+      <h1>Hi, I'm Kyle.{" "}<span class="grad">I build things, then write about what I learned.</span></h1>
+      <p>I build applications end to end, from the database schema to the CI/CD infra. Lately that's been data-heavy side projects: a tennis analytics text to SQL agent, a plant ID trainer for a botany exam, and a physics tool for racket nerds (I'm one of them).</p>
+      <div class="links">
+        <a class="btn primary nav-item" href="https://github.com/kylezehaoqin" rel="noopener">GitHub ↗</a>
+        <a class="btn nav-item" href="https://www.linkedin.com/in/zehao-qin" rel="noopener">LinkedIn ↗</a>
+        {hasResume && <a class="btn nav-item" href="/resume.pdf">Resume</a>}
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="h-projects">
+      <div class="sec-h"><h2 id="h-projects">projects</h2><a href="/projects">all →</a></div>
+      <ul class="rows">{projects.map((p) => <ProjectRow project={p} />)}</ul>
+    </section>
+
+    <section class="sec" aria-labelledby="h-notes">
+      <div class="sec-h"><h2 id="h-notes">notes</h2>{notes.length > 0 && <a href="/notes">all →</a>}</div>
+      {notes.length > 0
+        ? <ul class="list">{notes.map((n) => <NoteRow note={n} />)}</ul>
+        : <p class="empty">First notes coming soon.</p>}
+    </section>
+
+    <section class="sec" aria-labelledby="h-about">
+      <div class="sec-h"><h2 id="h-about">about</h2><a href="/about">more →</a></div>
+      <div class="about-strip">
+        <p>Full-stack developer in San Jose. I studied computer science and web science at RPI, then built and ran production apps as a contractor for education and e-commerce clients.</p>
+        <a class="nav-item" href="/about">Read more about me</a>
+      </div>
+    </section>
+  </main>
+</Base>

@@ -1,0 +1,14 @@
+---
+import Base from "../../layouts/Base.astro";
+import NoteRow from "../../components/NoteRow.astro";
+import { getNotes } from "../../lib/content";
+const notes = await getNotes();
+---
+<Base title="Notes" current="notes" description="Findings, workflows, and things Kyle Qin wants to remember.">
+  <main class="page">
+    <div class="page-h"><h1>Notes</h1><p>Findings, workflows, and things I want to remember.</p></div>
+    {notes.length > 0
+      ? <ul class="list">{notes.map((n) => <NoteRow note={n} />)}</ul>
+      : <p class="empty">First notes coming soon.</p>}
+  </main>
+</Base>

@@ -1,0 +1,8 @@
+---
+const sha = (import.meta.env.PUBLIC_SHA ?? "").slice(0, 7) || "local";
+const year = new Date().getFullYear();
+---
+<footer class="foot">
+  <span>© {year} Kyle Qin · <span class="mail">kylezh.qin@gmail.com</span></span>
+  <span>deployed <code>{sha}</code> · try <kbd>:</kbd></span>
+</footer>

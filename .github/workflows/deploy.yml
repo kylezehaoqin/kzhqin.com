@@ -1,28 +1,56 @@
-# Push to main = live on https://kzhqin.com in about a minute.
-# The deploy key can only run deploy-gate for this site (see kylezehaoqin/infra).
+# Every push and PR runs `check`. Only a push to main also runs `deploy`, which
+# ships the exact dist/ that `check` built and tested. The deploy key can only
+# run `deploy-gate static kzhqin.com` on the VPS (see kylezehaoqin/infra).
 name: deploy
 on:
   push:
-    branches: [main]
+  pull_request:
   workflow_dispatch:
-concurrency:
-  group: deploy-kzhqin.com
-  cancel-in-progress: false
 permissions:
   contents: read
 jobs:
-  deploy:
+  check:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Check the page
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Types and content frontmatter
+        run: npm run check
+      - name: Unit tests
+        run: npm test
+      - name: Build
+        env:
+          PUBLIC_SHA: ${{ github.sha }}
+        run: npm run build
+      - name: Verify dist (links, TODOs, drafts, size, JS budget)
+        run: npm run verify
+      - name: End-to-end tests (fixture build)
         run: |
-          test -f index.html
-          grep -q '<title>' index.html
-          # Every local file that index.html links to must exist.
-          for f in $(grep -oE '(href|src)="[^":#?]+"' index.html | cut -d'"' -f2); do
-            test -e "$f" || { echo "missing: $f"; exit 1; }
-          done
+          npx playwright install --with-deps chromium
+          npm run build:e2e
+          npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  deploy:
+    needs: check
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: deploy-kzhqin.com
+      cancel-in-progress: false
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
       - name: Deploy
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
@@ -31,8 +59,7 @@ jobs:
           install -m 700 -d ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          # Publish an explicit list only. Anything else in the repo (CLAUDE.md, docs/)
-          # must never become public. After the Astro move this becomes: -C dist .
-          tar -czf - index.html style.css \
+          # Only the build output is published. Nothing else in the repo can reach the site.
+          tar -czf - -C dist . \
             | ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
                 deploy@89.116.191.153 "$GITHUB_SHA"

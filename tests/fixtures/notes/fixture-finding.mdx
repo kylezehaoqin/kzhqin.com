@@ -1,0 +1,20 @@
+---
+title: "Fixture finding for tests"
+date: 2026-09-30
+kind: finding
+tags: [testing]
+summary: "A test-only note that exercises code blocks, callouts, and the older/newer links."
+---
+import Callout from "../../../src/components/mdx/Callout.astro";
+
+This note exists only in the end-to-end test build. It never ships.
+
+```sql
+CREATE INDEX points_serve_idx ON points (match_id) WHERE is_serve;
+```
+
+<Callout label="Note">A callout inside a note.</Callout>
+
+## A long section
+
+{Array.from({ length: 40 }, (_, i) => <p>Paragraph {i + 1} keeps the page long enough to scroll.</p>)}

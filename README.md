@@ -1,9 +1,46 @@
 # kzhqin.com
 
-Kyle Qin's personal site: plain HTML and CSS, no build step.
+Kyle Qin's personal site: projects and notes. Astro + MDX, static output.
 
-- Preview: `python3 -m http.server 8765`, then open http://127.0.0.1:8765
-- Publish: push to `main`. GitHub Actions sends the files to the VPS, and the change is live in about a minute.
-- Roll back: open the Actions run of the last good commit and click **Re-run jobs**.
+## Write a note
 
-How the server side works: see `MANUAL.md` in the private `kylezehaoqin/infra` repo.
+1. Make `src/content/notes/<slug>.mdx`. The file name becomes the URL: `/notes/<slug>`.
+   ```mdx
+   ---
+   title: "Measure the index, don't guess"
+   date: 2026-09-30
+   kind: finding            # finding | workflow | note
+   tags: [postgres]
+   summary: "One line, 160 characters at most. Shown in lists, RSS, and search."
+   ---
+   import Callout from "../../components/mdx/Callout.astro";
+
+   Text in Markdown. Code fences get syntax highlighting and a copy button.
+
+   <Callout label="Note">Use components where they help.</Callout>
+   ```
+2. Preview: `npm run dev`, then open http://localhost:4321.
+3. Publish: `git push` to `main`. The note is live in about 3 minutes.
+
+**Drafts:** this repo is public. `draft: true` hides a note from the site, but anyone can read it on GitHub. For private drafts, use `src/content/drafts/` (gitignored). `npm run dev` shows them; builds never include them.
+
+## Add a project
+
+Make `src/content/projects/<slug>.md` with `name`, `year`, `tags` (1-4), `summary` (140 characters at most), and optional `href`, `order`, and `featured` (the home page shows up to 4 featured projects).
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Local preview with drafts |
+| `npm run build` | Production build into `dist/` |
+| `npm run check` | Types and frontmatter |
+| `npm test` | Unit tests |
+| `npm run verify` | Checks `dist/`: links, TODOs, drafts, size, JS budget |
+| `npm run build:e2e && npm run test:e2e` | End-to-end tests on a build with fixture notes |
+
+## How it deploys
+
+GitHub Actions runs every check above on each push. On `main`, it sends only `dist/` to the VPS, where `deploy-gate` switches the site over atomically and rolls back on its own if the smoke check fails. To roll back by hand, re-run the Actions job of the last good commit. Server side: `MANUAL.md` in the private `kylezehaoqin/infra` repo.
+
+Try pressing `:` on the site.

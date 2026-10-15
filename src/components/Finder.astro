@@ -1,0 +1,13 @@
+<div class="overlay" id="overlay" hidden></div>
+<div class="picker" id="picker" role="dialog" aria-modal="true" aria-label="Find" hidden>
+  <div class="pane">
+    <span class="title">Find</span>
+    <div class="prompt">
+      <span aria-hidden="true">:</span>
+      <input id="finder-q" type="text" autocomplete="off" spellcheck="false" aria-label="Search pages, projects, notes, and commands" aria-controls="finder-results" placeholder="pages, projects, notes, commands…" />
+      <span class="count" id="finder-count"></span>
+    </div>
+    <ul class="results" id="finder-results" role="listbox" aria-label="Results"></ul>
+  </div>
+  <div class="pane preview" id="finder-preview"><span class="title">Preview</span></div>
+</div>
