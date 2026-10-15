@@ -1,10 +1,12 @@
 ---
 import type { Project } from "../lib/content";
 interface Props { project: Project }
-const { id, data: { name, year, tags, summary } } = Astro.props.project;
+const { id, data: { name, year, period, tags, summary, repo, live } } = Astro.props.project;
+const path = `/projects/${id}`;
 ---
 <li>
-  <a class="row nav-item" href={`/projects/${id}`}>
+  <a class="row nav-item" href={path} data-url={new URL(path, Astro.site).href} data-ext={live ?? repo}
+     data-meta={[period, ...tags].join(" · ")} data-summary={summary}>
     <span class="yr">{year}</span>
     <h3>{name}</h3>
     <span class="tg">{tags.join(" · ")}</span>

@@ -277,6 +277,15 @@ function closeWhich() {
 /* ---------------- selection for j/k ---------------- */
 let sel = -1;
 const items = () => Array.from(document.querySelectorAll<HTMLElement>("main .nav-item"));
+const canonical = () => document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href ?? location.href;
+// gx target: a row's data-ext, or an external link itself (the hero's GitHub button).
+function extOf(el: HTMLElement | undefined): string | undefined {
+  if (!el) return undefined;
+  if (el.dataset.ext) return el.dataset.ext;
+  if (el instanceof HTMLAnchorElement && /^https?:/.test(el.href) && el.host !== location.host) return el.href;
+  return undefined;
+}
+const openTab = (url: string) => window.open(url, "_blank", "noopener");
 function paintSel() {
   document.querySelectorAll(".sel").forEach((el) => el.classList.remove("sel"));
   const list = items();
@@ -313,6 +322,22 @@ function perform(a: Action) {
     case "help": if (wk?.hidden === false && wkTitle?.textContent === "keymaps") closeWhich(); else openWhich("help"); break;
     case "leader": openWhich("leader"); break;
     case "leaderGroup": openWhich(a.group); break;
+    case "external": {
+      const url = longPage ? document.body.dataset.ext : extOf(list[sel]);
+      if (url) openTab(url); else say("no external link");
+      break;
+    }
+    case "yank": {
+      const url = (longPage ? undefined : list[sel]?.dataset.url) ?? canonical();
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject(new Error("no clipboard")))
+        .then(() => say(`yanked ${url}`), () => say("clipboard blocked"));
+      break;
+    }
+    case "source": {
+      const src = document.body.dataset.src;
+      if (src) openTab(`https://github.com/kylezehaoqin/kzhqin.com/blob/main/${src}`);
+      break;
+    }
     case "zen": { const on = root.classList.toggle("zen"); say(on ? "zen on · ␣uz to exit" : "zen off"); break; }
     case "escape": closeWhich(); sel = -1; paintSel(); break;
   }

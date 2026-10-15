@@ -267,6 +267,65 @@ test.describe("page keys", () => {
     await page.keyboard.press("z");
     await expect(page.locator("#statusbar")).toBeVisible();
   });
+
+  test("gx on a project row opens its repo in a new tab", async ({ page }) => {
+    await page.goto("/projects");
+    const n = await page.locator(".row").evaluateAll((els) => els.findIndex((e) => e.querySelector("h3")?.textContent === "Deuce"));
+    for (let i = 0; i <= n; i++) await page.keyboard.press("j");
+    const popup = page.waitForEvent("popup");
+    await page.keyboard.press("g");
+    await page.keyboard.press("x");
+    expect((await popup).url()).toBe("https://github.com/kylezehaoqin/deuce");
+  });
+
+  test("gx on a note row says there is no external link", async ({ page }) => {
+    await page.goto("/notes");
+    await page.keyboard.press("j");
+    let opened = false;
+    page.on("popup", () => { opened = true; });
+    await page.keyboard.press("g");
+    await page.keyboard.press("x");
+    await expect(page.locator("#msg")).toHaveText("no external link");
+    expect(opened).toBe(false);
+  });
+
+  test("yy copies the selected row's full URL", async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("/notes");
+    await page.keyboard.press("j");
+    await page.keyboard.press("y");
+    await page.keyboard.press("y");
+    await expect(page.locator("#msg")).toHaveText("yanked https://kzhqin.com/notes/fixture-finding");
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("https://kzhqin.com/notes/fixture-finding");
+  });
+
+  test("yy with the clipboard blocked says so", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    await page.evaluate(() => { Object.defineProperty(navigator, "clipboard", { value: { writeText: () => Promise.reject(new Error("denied")) } }); });
+    await page.keyboard.press("y");
+    await page.keyboard.press("y");
+    await expect(page.locator("#msg")).toHaveText("clipboard blocked");
+  });
+
+  test("␣gB opens this page's source on GitHub", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    const popup = page.waitForEvent("popup");
+    await page.keyboard.press(" ");
+    await page.keyboard.press("g");
+    await page.keyboard.press("B");
+    expect((await popup).url()).toBe("https://github.com/kylezehaoqin/kzhqin.com/blob/main/src/content/projects/deuce.md");
+  });
+
+  test("every page names its source file", async ({ page }) => {
+    const want: Record<string, string> = {
+      "/": "src/pages/index.astro", "/projects": "src/pages/projects.astro", "/notes": "src/pages/notes/index.astro",
+      "/about": "src/pages/about.mdx", "/notes/fixture-finding": "tests/fixtures/notes/fixture-finding.mdx",
+    };
+    for (const [url, src] of Object.entries(want)) {
+      await page.goto(url);
+      await expect(page.locator("body")).toHaveAttribute("data-src", src);
+    }
+  });
 });
 
 test.describe("phone, motion, no-JS, accessibility", () => {

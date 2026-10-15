@@ -21,6 +21,8 @@ interface Props {
   current: "home" | "projects" | "notes" | "about" | "note" | "project" | "404";
   slug?: string; // on a note or project page: its id, shown as an extra buffer
   type?: "website" | "article";
+  src?: string; // repo-relative source file, for ␣gB
+  ext?: string; // external link for gx on a detail page
 }
 const {
   title,
@@ -28,7 +30,14 @@ const {
   current,
   slug,
   type = "website",
+  src,
+  ext,
 } = Astro.props;
+const DEFAULT_SRC: Record<string, string> = {
+  home: "src/pages/index.astro", projects: "src/pages/projects.astro", notes: "src/pages/notes/index.astro",
+  about: "src/pages/about.mdx", "404": "src/pages/404.astro",
+};
+const source = src ?? DEFAULT_SRC[current] ?? "";
 const fullTitle = title ? `${title} · Kyle Qin` : "Kyle Qin";
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
@@ -64,7 +73,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       } catch (e) {}
     </script>
   </head>
-  <body data-page={current}>
+  <body data-page={current} data-src={source} data-ext={ext}>
     <canvas id="dots" aria-hidden="true"></canvas>
     <div class="layer">
       <Nav current={current} />
