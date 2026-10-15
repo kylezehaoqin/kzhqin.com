@@ -231,6 +231,9 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 .prompt input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--fg); font: 14px var(--font-mono); }
 .prompt .count { color: var(--faint); font-size: 11.5px; }
 .results { list-style: none; margin: 0; padding: 6px; max-height: 320px; overflow-y: auto; }
+.tabs { display: flex; gap: 4px; padding: 10px 12px 0; }
+.tabs button { font: 12px var(--font-mono); color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 2px 8px; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--acc-text); border-color: var(--line); background: var(--soft); }
 .results li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 5px 8px; border-radius: 7px; cursor: pointer; }
 .results .ic { color: var(--faint); }
 .results .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); }
@@ -238,6 +241,7 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 .results .kd { color: var(--faint); font-size: 11.5px; }
 .results li.on { background: var(--acc-tint); }
 .results li.on .ic { color: var(--acc-text); }
+.results li.on .kd { color: var(--muted); } /* --faint is under 4.5:1 on the accent tint */
 .results li.none { grid-template-columns: 1fr; color: var(--faint); cursor: default; }
 .preview { padding: 14px 16px; display: grid; gap: 8px; align-content: start; font-family: var(--font-body); }
 .preview h4 { margin: 0; font: 800 18px var(--font-display); color: var(--fg); }

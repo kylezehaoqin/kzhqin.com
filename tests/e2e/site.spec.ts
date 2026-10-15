@@ -46,7 +46,7 @@ test.describe("finder and keys", () => {
     await page.goto("/");
     await page.keyboard.press(":");
     await expect(page.locator("#picker")).toBeVisible();
-    await expect(page.locator("#mode")).toHaveText("COMMAND");
+    await expect(page.locator("#mode")).toHaveText("INSERT");
     await page.keyboard.type("proj");
     await expect(page.locator("#finder-results li.on .nm")).toHaveText("projects");
     await page.keyboard.press("Enter");
@@ -58,6 +58,9 @@ test.describe("finder and keys", () => {
     await page.keyboard.press("/");
     await page.keyboard.type("fixture fin");
     await expect(page.locator("#finder-results li.on .nm")).toHaveText("Fixture finding for tests");
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#mode")).toHaveText("NORMAL");
+    await expect(page.locator("#picker")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.locator("#picker")).toBeHidden();
     await expect(page.locator("#mode")).toHaveText("NORMAL");
@@ -142,6 +145,56 @@ test.describe("theme, notes, and status bar", () => {
     await expect(page.locator("#pos")).toHaveText("Bot");
     await expect(page.locator(".pager")).toContainText("Fixture workflow for tests");
     await expect(page.locator(".buf[aria-current=page]")).toHaveText("5 fixture-finding");
+  });
+});
+
+test.describe("finder modes and tabs", () => {
+  test("Esc goes to NORMAL: j moves, i types again, q closes", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press(":");
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#finder-q")).toHaveAttribute("readonly", "");
+    const first = await page.locator("#finder-results li.on .nm").textContent();
+    await page.keyboard.press("j");
+    await expect(page.locator("#finder-results li.on .nm")).not.toHaveText(first!);
+    await page.keyboard.press("i");
+    await expect(page.locator("#mode")).toHaveText("INSERT");
+    await page.keyboard.type("ab");
+    await expect(page.locator("#finder-q")).toHaveValue("ab");
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("q");
+    await expect(page.locator("#picker")).toBeHidden();
+  });
+
+  test("C-l and C-h switch scope tabs; C-h does not delete text", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press(":");
+    await page.keyboard.type("d");
+    await page.keyboard.press("Control+l");
+    await expect(page.locator('#finder-tabs [aria-selected="true"]')).toHaveText("Projects");
+    const kinds = page.locator("#finder-results li .kd");
+    await expect(kinds.first()).toHaveText("project");
+    expect(new Set(await kinds.allTextContents())).toEqual(new Set(["project"]));
+    await page.keyboard.press("Control+h");
+    await page.keyboard.press("Control+h");
+    await expect(page.locator('#finder-tabs [aria-selected="true"]')).toHaveText("Pages");
+    await expect(page.locator("#finder-q")).toHaveValue("d");
+  });
+
+  test("a click on a tab selects it", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press(":");
+    await page.locator("#finder-tabs button", { hasText: "Notes" }).click();
+    await expect(page.locator('#finder-tabs [aria-selected="true"]')).toHaveText("Notes");
+    await expect(page.locator("#finder-q")).toBeFocused();
+  });
+
+  test("the open finder with tabs has no serious accessibility problems", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press(":");
+    await expect(page.locator("#finder-tabs")).toBeVisible();
+    const results = await new AxeBuilder({ page }).include("#picker").analyze();
+    expect(results.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);
   });
 });
 

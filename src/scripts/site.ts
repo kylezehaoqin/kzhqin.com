@@ -1,5 +1,6 @@
 // Everything interactive on the site. Each part is optional: the pages are
 // complete HTML without this script. Pure logic lives in src/lib (unit-tested).
+import { createFinderKeys, inTab, TABS, type Tab } from "../lib/finderkeys";
 import { rank } from "../lib/fuzzy";
 import { createKeymap, LEADER_KEYS, type Action, type Page } from "../lib/keys";
 import { scrollLabel } from "../lib/scrollpos";
@@ -123,7 +124,7 @@ onScroll();
 
 /* ---------------- mode block ---------------- */
 const modeEl = $("mode"), pendEl = $("pending");
-function setMode(m: "NORMAL" | "COMMAND" | "LEADER") {
+function setMode(m: "NORMAL" | "INSERT" | "LEADER") {
   if (!modeEl) return;
   modeEl.dataset.m = m;
   modeEl.textContent = m;
@@ -146,6 +147,20 @@ let loaded: Promise<void> | null = null;
 let shown: ReturnType<typeof rank<Entry>> = [];
 let cur = 0;
 let returnFocus: Element | null = null;
+const fkeys = createFinderKeys();
+let tab: Tab = "All";
+const tabsEl = $("finder-tabs");
+function setTab(t: Tab) {
+  tab = t; cur = 0;
+  tabsEl?.querySelectorAll<HTMLElement>("[data-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
+  renderResults();
+}
+function setFinderMode(m: "INSERT" | "NORMAL") {
+  if (!q) return;
+  q.readOnly = m === "NORMAL";
+  setMode(m);
+  if (m === "INSERT") { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+}
 
 function loadIndex() {
   loaded ??= fetch("/search.json")
@@ -158,9 +173,10 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 
 function renderResults() {
   if (!q || !resultsEl || !countEl || !previewEl) return;
-  shown = rank(entries, (e) => e.name, q.value.trim());
+  const pool = entries.filter((e) => inTab(e.kind, tab));
+  shown = rank(pool, (e) => e.name, q.value.trim());
   cur = Math.min(cur, Math.max(0, shown.length - 1));
-  countEl.textContent = `${shown.length}/${entries.length}`;
+  countEl.textContent = `${shown.length}/${pool.length}`;
   resultsEl.innerHTML = shown.length
     ? shown.map((r, i) => {
         const hits = new Set(r.hits);
@@ -171,7 +187,7 @@ function renderResults() {
   q.setAttribute("aria-activedescendant", shown.length ? `fr-${cur}` : "");
   const pick = shown[cur]?.item;
   previewEl.innerHTML = '<span class="title">Preview</span>' + (pick
-    ? `<span class="k">${esc(pick.kind)}${pick.meta ? " · " + esc(pick.meta) : ""}</span><h4>${esc(pick.name)}</h4><p>${esc(pick.text)}</p><span class="k">⏎ open · ctrl-j/k move · esc close</span>`
+    ? `<span class="k">${esc(pick.kind)}${pick.meta ? " · " + esc(pick.meta) : ""}</span><h4>${esc(pick.name)}</h4><p>${esc(pick.text)}</p><span class="k">⏎ open · C-j/k move · C-h/l tab · esc normal</span>`
     : "");
   resultsEl.querySelector("li.on")?.scrollIntoView({ block: "nearest" });
 }
@@ -181,14 +197,15 @@ function openFinder() {
   returnFocus = document.activeElement;
   overlay.hidden = false; picker.hidden = false;
   q.value = ""; cur = 0;
-  setMode("COMMAND");
-  renderResults();
-  q.focus();
+  fkeys.reset();
+  setTab("All");
+  setFinderMode("INSERT");
   loadIndex().then(renderResults);
 }
 function closeFinder() {
   if (!overlay || !picker) return;
   overlay.hidden = true; picker.hidden = true;
+  if (q) q.readOnly = false;
   setMode("NORMAL");
   (returnFocus as HTMLElement | null)?.focus?.();
 }
@@ -201,15 +218,22 @@ function runCurrent() {
 }
 q?.addEventListener("input", () => { cur = 0; renderResults(); });
 q?.addEventListener("keydown", (e) => {
-  const down = e.key === "ArrowDown" || (e.ctrlKey && ["j", "n"].includes(e.key));
-  const up = e.key === "ArrowUp" || (e.ctrlKey && ["k", "p"].includes(e.key));
-  if (down) cur = Math.min(shown.length - 1, cur + 1);
-  else if (up) cur = Math.max(0, cur - 1);
-  else if (e.key === "Enter") return e.preventDefault(), runCurrent();
-  else if (e.key === "Escape") return e.preventDefault(), closeFinder();
-  else return;
+  const a = fkeys.feed({ key: e.key, ctrl: e.ctrlKey, meta: e.metaKey, alt: e.altKey });
+  if (!a) return;
   e.preventDefault();
-  renderResults();
+  switch (a.type) {
+    case "move": cur = Math.max(0, Math.min(shown.length - 1, cur + a.by)); renderResults(); break;
+    case "first": cur = 0; renderResults(); break;
+    case "last": cur = Math.max(0, shown.length - 1); renderResults(); break;
+    case "tab": setTab(TABS[(TABS.indexOf(tab) + a.by + TABS.length) % TABS.length]); break;
+    case "open": runCurrent(); break;
+    case "mode": setFinderMode(a.to); break;
+    case "close": closeFinder(); break;
+  }
+});
+tabsEl?.addEventListener("click", (e) => {
+  const b = (e.target as Element).closest<HTMLElement>("[data-tab]");
+  if (b) { setTab(b.dataset.tab as Tab); q?.focus(); }
 });
 resultsEl?.addEventListener("click", (e) => {
   const li = (e.target as Element).closest<HTMLElement>("li[data-i]");
