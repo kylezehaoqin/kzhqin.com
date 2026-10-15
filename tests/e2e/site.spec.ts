@@ -367,6 +367,30 @@ test.describe("page keys", () => {
     await page.locator(".copy").first().click();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("CREATE INDEX");
   });
+
+  test("K shows a hover card for the selected row; j closes it", async ({ page }) => {
+    await page.goto("/projects");
+    await page.keyboard.press("j");
+    await page.keyboard.press("K");
+    const card = page.locator("#hovercard");
+    await expect(card).toBeVisible();
+    await expect(card).toContainText("–"); // a period such as "Sep 2026–present"
+    await expect(card).toContainText("gx");
+    await page.keyboard.press("j");
+    await expect(card).toBeHidden();
+  });
+
+  test("K with no row selected does nothing; : closes an open card", async ({ page }) => {
+    await page.goto("/projects");
+    await page.keyboard.press("K");
+    await expect(page.locator("#hovercard")).toBeHidden();
+    await page.keyboard.press("j");
+    await page.keyboard.press("K");
+    await expect(page.locator("#hovercard")).toBeVisible();
+    await page.keyboard.press(":");
+    await expect(page.locator("#hovercard")).toBeHidden();
+    await expect(page.locator("#picker")).toBeVisible();
+  });
 });
 
 test.describe("phone, motion, no-JS, accessibility", () => {

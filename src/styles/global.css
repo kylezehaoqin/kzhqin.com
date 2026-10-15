@@ -271,3 +271,8 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 .fold > * { margin: 0; max-width: 65ch; }
 .fold.folded > :not(h2) { display: none; }
 .fold.folded > h2::after { content: " ▸ …"; color: var(--faint); font-weight: 500; }
+/* Hover card (K) next to the selected row. */
+.hovercard { position: absolute; z-index: 25; display: grid; gap: 4px; max-width: min(440px, calc(100vw - 32px)); padding: 12px 14px; font-size: 14px; }
+.hovercard b { font: 800 15px var(--font-display); }
+.hovercard .k { font: 11.5px var(--font-mono); color: var(--faint); }
+.hovercard p { margin: 0; color: var(--muted); }

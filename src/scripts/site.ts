@@ -286,6 +286,31 @@ function extOf(el: HTMLElement | undefined): string | undefined {
   return undefined;
 }
 const openTab = (url: string) => window.open(url, "_blank", "noopener");
+
+/* ---------------- hover card (K) ---------------- */
+const card = document.createElement("div");
+card.id = "hovercard"; card.className = "pane hovercard"; card.hidden = true;
+card.setAttribute("role", "note");
+document.body.append(card);
+let cardOpenedAt = 0;
+function closeCard() { card.hidden = true; }
+function toggleCard() {
+  if (!card.hidden) return closeCard();
+  const row = longPage ? undefined : items()[sel];
+  if (!row?.dataset.summary) return;
+  const name = row.querySelector("h3, .t")?.childNodes[0]?.textContent?.trim() ?? "";
+  const ext = row.dataset.ext;
+  card.innerHTML = `<b>${esc(name)}</b><span class="k">${esc(row.dataset.meta ?? "")}</span><p>${esc(row.dataset.summary)}</p>`
+    + (ext ? `<span class="k">gx → ${esc(ext.replace(/^https?:\/\//, ""))}</span>` : "");
+  const r = row.getBoundingClientRect();
+  card.style.top = `${scrollY + r.bottom + 6}px`;
+  card.style.left = `${scrollX + r.left}px`;
+  card.hidden = false;
+  cardOpenedAt = performance.now();
+}
+// Close on scroll, but not on a scroll that the selection itself caused in the last 300 ms.
+addEventListener("scroll", () => { if (!card.hidden && performance.now() - cardOpenedAt > 300) closeCard(); }, { passive: true });
+addEventListener("click", closeCard);
 function paintSel() {
   document.querySelectorAll(".sel").forEach((el) => el.classList.remove("sel"));
   const list = items();
@@ -333,6 +358,7 @@ function perform(a: Action) {
         .then(() => say(`yanked ${url}`), () => say("clipboard blocked"));
       break;
     }
+    case "hover": toggleCard(); break;
     case "section": jumpSection(a.by); break;
     case "fold": if (longPage) foldAtTop(); break;
     case "foldAll": folds.forEach((s) => setFold(s, true)); break;
@@ -348,6 +374,7 @@ function perform(a: Action) {
 }
 
 document.addEventListener("keydown", (e) => {
+  if (e.key !== "K" || e.metaKey || e.ctrlKey || e.altKey) closeCard(); // any other key closes the hover card
   if (picker && !picker.hidden) return; // the finder handles its own keys
   const t = e.target as HTMLElement;
   const action = keymap.feed({
