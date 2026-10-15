@@ -10,6 +10,8 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const darkQuery = matchMedia("(prefers-color-scheme: dark)");
 const page = document.body.dataset.page ?? "home";
+// Note and project pages are long reads: j/k scroll, and h goes back to the list.
+const longPage = page === "note" || page === "project";
 const store = {
   get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } },
   set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
@@ -109,7 +111,7 @@ function tick() {
 function onScroll() {
   const sh = document.documentElement.scrollHeight;
   if (posEl) posEl.textContent = scrollLabel(scrollY, sh, innerHeight);
-  if (progressEl && page === "note") {
+  if (progressEl && longPage) {
     const max = sh - innerHeight;
     progressEl.style.width = `${max > 0 ? Math.min(100, (scrollY / max) * 100) : 100}%`;
   }
@@ -254,8 +256,6 @@ function paintSel() {
 const keymap = createKeymap();
 const bufferLinks = () => Array.from(document.querySelectorAll<HTMLAnchorElement>(".bufs .buf"));
 const PAGE_HREF: Record<Page, string> = { home: "/", projects: "/projects", notes: "/notes", about: "/about" };
-const longPage = page === "note";
-
 function perform(a: Action) {
   const list = items();
   switch (a.type) {
@@ -264,7 +264,7 @@ function perform(a: Action) {
     case "top": sel = 0; scrollTo(0, 0); if (!longPage) paintSel(); break;
     case "bottom": sel = list.length - 1; scrollTo(0, document.documentElement.scrollHeight); if (!longPage) paintSel(); break;
     case "open": list[sel]?.click(); break;
-    case "back": if (page === "note") location.href = "/notes"; else if (page !== "home") location.href = "/"; break;
+    case "back": if (longPage) location.href = `/${page}s`; else if (page !== "home") location.href = "/"; break;
     case "prevBuffer": case "nextBuffer": {
       const bufs = bufferLinks();
       const i = bufs.findIndex((b) => b.getAttribute("aria-current") === "page");

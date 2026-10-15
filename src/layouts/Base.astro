@@ -18,15 +18,15 @@ import WhichKey from "../components/WhichKey.astro";
 interface Props {
   title?: string;
   description?: string;
-  current: "home" | "projects" | "notes" | "about" | "note" | "404";
-  noteSlug?: string;
+  current: "home" | "projects" | "notes" | "about" | "note" | "project" | "404";
+  slug?: string; // on a note or project page: its id, shown as an extra buffer
   type?: "website" | "article";
 }
 const {
   title,
   description = "Kyle Qin, full-stack developer in San Jose. Projects and notes on what I build and learn.",
   current,
-  noteSlug,
+  slug,
   type = "website",
 } = Astro.props;
 const fullTitle = title ? `${title} · Kyle Qin` : "Kyle Qin";
@@ -73,7 +73,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
         <Footer />
       </div>
     </div>
-    <StatusBar current={current} noteSlug={noteSlug} />
+    <StatusBar current={current} slug={slug} />
     <Finder />
     <WhichKey />
     <script>

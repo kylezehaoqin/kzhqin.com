@@ -1,0 +1,20 @@
+---
+import { SKILLS } from "../data/skills";
+import { getProjects } from "../lib/content";
+
+// compact: the home page shows only the first 4 items of each domain.
+interface Props { compact?: boolean }
+const { compact = false } = Astro.props;
+const names = new Map((await getProjects()).map((p) => [p.id, p.data.name]));
+for (const { domain, proof } of SKILLS)
+  for (const id of proof) if (!names.has(id)) throw new Error(`skills: "${domain}" names unknown project "${id}"`);
+---
+<ul class:list={["skills", { compact }]}>
+  {SKILLS.map(({ domain, items, proof }) => (
+    <li class="dom">
+      <h3>{domain}</h3>
+      <p class="items">{(compact ? items.slice(0, 4) : items).join(" · ")}</p>
+      <p class="proof">see {proof.map((id, i) => <>{i > 0 && ", "}<a href={`/projects/${id}`}>{names.get(id)}</a></>)}</p>
+    </li>
+  ))}
+</ul>

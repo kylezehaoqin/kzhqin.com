@@ -16,7 +16,7 @@ const { note, newer, older } = Astro.props;
 const { Content } = await render(note);
 const { title, date, updated, kind, tags, summary } = note.data;
 ---
-<Base title={title} description={summary} current="note" noteSlug={note.id} type="article">
+<Base title={title} description={summary} current="note" slug={note.id} type="article">
   <main>
     <article class="post">
       <a class="back" href="/notes">← all notes</a>

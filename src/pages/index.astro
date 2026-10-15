@@ -3,6 +3,7 @@ import fs from "node:fs";
 import Base from "../layouts/Base.astro";
 import ProjectRow from "../components/ProjectRow.astro";
 import NoteRow from "../components/NoteRow.astro";
+import Skills from "../components/Skills.astro";
 import { getNotes, getProjects } from "../lib/content";
 
 const projects = (await getProjects()).filter((p) => p.data.featured).slice(0, 4);
@@ -32,6 +33,11 @@ const hasResume = fs.existsSync("public/resume.pdf");
       {notes.length > 0
         ? <ul class="list">{notes.map((n) => <NoteRow note={n} />)}</ul>
         : <p class="empty">First notes coming soon.</p>}
+    </section>
+
+    <section class="sec" aria-labelledby="h-stack">
+      <div class="sec-h"><h2 id="h-stack">stack</h2><a href="/about#stack">all →</a></div>
+      <Skills compact />
     </section>
 
     <section class="sec" aria-labelledby="h-about">

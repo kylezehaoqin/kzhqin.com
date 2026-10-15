@@ -1,0 +1,46 @@
+---
+import { render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { getProjects, type Project } from "../../lib/content";
+
+export async function getStaticPaths() {
+  const projects = await getProjects(); // same order as /projects
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: { project, prev: projects[i - 1], next: projects[i + 1] },
+  }));
+}
+
+interface Props { project: Project; prev?: Project; next?: Project }
+const { project, prev, next } = Astro.props;
+const { Content } = await render(project);
+const { name, period, role, tags, summary, repo, live } = project.data;
+---
+<Base title={name} description={summary} current="project" slug={project.id} type="article">
+  <main>
+    <article class="post">
+      <a class="back" href="/projects">← all projects</a>
+      <header>
+        <div class="meta">
+          <span>{period}</span>
+          {role && <span>{role}</span>}
+          {tags.map((t) => <span class="chip ghost">{t}</span>)}
+        </div>
+        <h1>{name}</h1>
+        {(repo || live) && (
+          <div class="links">
+            {live && <a class="btn primary nav-item" href={live} rel="noopener">Live ↗</a>}
+            {repo && <a class="btn nav-item" href={repo} rel="noopener">GitHub ↗</a>}
+          </div>
+        )}
+      </header>
+      <div class="prose"><Content /></div>
+      {(prev || next) && (
+        <nav class="pager" aria-label="More projects">
+          {prev && <a class="nav-item" href={`/projects/${prev.id}`}><span>← newer</span><b>{prev.data.name}</b></a>}
+          {next && <a class="nav-item next" href={`/projects/${next.id}`}><span>older →</span><b>{next.data.name}</b></a>}
+        </nav>
+      )}
+    </article>
+  </main>
+</Base>

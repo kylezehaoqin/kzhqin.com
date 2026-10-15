@@ -1,14 +1,13 @@
 ---
 import type { Project } from "../lib/content";
 interface Props { project: Project }
-const { name, year, tags, summary, href } = Astro.props.project.data;
-const Tag = href ? "a" : "div";
+const { id, data: { name, year, tags, summary } } = Astro.props.project;
 ---
 <li>
-  <Tag class="row nav-item" href={href} {...(href?.startsWith("http") ? { rel: "noopener" } : {})}>
+  <a class="row nav-item" href={`/projects/${id}`}>
     <span class="yr">{year}</span>
     <h3>{name}</h3>
     <span class="tg">{tags.join(" · ")}</span>
     <p>{summary}</p>
-  </Tag>
+  </a>
 </li>

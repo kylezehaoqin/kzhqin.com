@@ -1,7 +1,7 @@
 ---
 interface Props { current: string }
 const { current } = Astro.props;
-const here = (p: string) => (current === p || (p === "notes" && current === "note") ? "page" : undefined);
+const here = (p: string) => (current === p || `${current}s` === p ? "page" : undefined); // "note" → notes, "project" → projects
 ---
 <div class="nav-band">
   <div class="wrap">

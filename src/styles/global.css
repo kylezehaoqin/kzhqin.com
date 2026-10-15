@@ -113,6 +113,19 @@ main.page { gap: 28px; }
 .about-strip p { margin: 0; color: var(--muted); }
 .about-strip a { color: var(--acc-text); font-size: 14px; text-underline-offset: 3px; justify-self: start; }
 .about-strip a.sel { outline: 2px solid var(--acc); outline-offset: 3px; border-radius: 4px; }
+.skills { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.skills .dom { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.skills h3 { margin: 0; font: 800 16px var(--font-display); }
+.skills .items { margin: 0; font: 13.5px/1.6 var(--font-mono); color: var(--fg); }
+.skills .proof { margin: 0; font-size: 13.5px; color: var(--faint); }
+.skills .proof a { color: var(--acc-text); text-underline-offset: 3px; }
+.prose .skills { padding-left: 0; }
+.skills.compact { gap: 0; }
+.skills.compact .dom { grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; padding: 12px 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; }
+.skills.compact .dom:last-child { border-bottom: 1px solid var(--line); }
+.skills.compact .items { grid-column: 1 / -1; color: var(--muted); }
+.skills.compact .proof { grid-column: 2; grid-row: 1; font-size: 12.5px; font-family: var(--font-mono); }
+@media (max-width: 520px) { .skills.compact .proof { grid-column: 1 / -1; grid-row: auto; } }
 .xp { list-style: none; margin: 0; padding: 0; }
 .xp li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
 .xp li:last-child { border-bottom: 1px solid var(--line); }

@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-const PAGES = ["/", "/projects", "/notes", "/about", "/notes/fixture-finding"];
+const PAGES = ["/", "/projects", "/projects/deuce", "/notes", "/about", "/notes/fixture-finding"];
 
 // Keep tests on our server: answer any external link with a stub page.
 test.beforeEach(async ({ page }) => {
@@ -145,6 +145,53 @@ test.describe("theme, notes, and status bar", () => {
   });
 });
 
+test.describe("projects and skills", () => {
+  test("/projects lists every project, and each row opens its own page", async ({ page }) => {
+    await page.goto("/projects");
+    const rows = page.locator(".rows .row");
+    await expect(rows).toHaveCount(10);
+    const entries = await rows.evaluateAll((els) => els.map((a) => ({ href: a.getAttribute("href"), name: a.querySelector("h3")?.textContent })));
+    for (const { href, name } of entries) {
+      expect(href).toMatch(/^\/projects\/[a-z0-9-]+$/);
+      await page.goto(href!);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(name!);
+    }
+  });
+
+  test("a project page shows period, stack, repo link, and stories", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    await expect(page.locator(".post .meta")).toContainText("Sep 2026–present");
+    await expect(page.locator(".post .meta")).toContainText("dbt");
+    await expect(page.getByRole("link", { name: "GitHub ↗" })).toHaveAttribute("href", "https://github.com/kylezehaoqin/deuce");
+    await expect(page.locator(".prose h2").first()).toBeVisible();
+    await expect(page.locator(".pager a")).not.toHaveCount(0);
+  });
+
+  test("h on a project page goes back to /projects", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    await page.keyboard.press("h");
+    await expect(page).toHaveURL(/\/projects$/);
+  });
+
+  test("the finder opens a project page", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press(":");
+    await page.keyboard.type("deuce");
+    await expect(page.locator("#finder-results li.on .nm")).toHaveText("Deuce");
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/projects\/deuce$/);
+  });
+
+  for (const url of ["/", "/about"]) {
+    test(`${url} shows 3 skill domains, each linked to its projects`, async ({ page }) => {
+      await page.goto(url);
+      const domains = page.locator(".skills .dom");
+      await expect(domains).toHaveCount(3);
+      for (const d of await domains.all()) await expect(d.locator('a[href^="/projects/"]')).not.toHaveCount(0);
+    });
+  }
+});
+
 test.describe("phone, motion, no-JS, accessibility", () => {
   for (const url of PAGES) {
     test(`${url} has no horizontal scroll at 390px`, async ({ page }) => {
@@ -185,7 +232,7 @@ test.describe("phone, motion, no-JS, accessibility", () => {
     await ctx.close();
   });
 
-  for (const scheme of ["light", "dark"] as const) for (const url of ["/", "/projects", "/notes", "/about", "/notes/fixture-finding", "/missing"]) {
+  for (const scheme of ["light", "dark"] as const) for (const url of ["/", "/projects", "/projects/deuce", "/notes", "/about", "/notes/fixture-finding", "/missing"]) {
     test(`${url} (${scheme}) has no serious accessibility problems`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme });
       await page.goto(url);

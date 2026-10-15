@@ -32,7 +32,10 @@ const projects = defineCollection({
     year: z.number().int(),
     tags: z.array(z.string()).min(1).max(4),
     summary: z.string().max(140),
-    href: z.url().optional(),
+    period: z.string(), // "Sep 2026–present", shown on the project page
+    role: z.string().optional(), // for team projects: "Technical Product Manager, 5-person team"
+    repo: z.url().optional(),
+    live: z.url().optional(), // a hosted version, when there is one
     order: z.number().optional(),
     featured: z.boolean().default(false),
   }),

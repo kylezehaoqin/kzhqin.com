@@ -1,14 +1,15 @@
 ---
-interface Props { current: string; noteSlug?: string }
-const { current, noteSlug } = Astro.props;
+interface Props { current: string; slug?: string }
+const { current, slug } = Astro.props;
+const section = current === "project" ? "projects" : "notes";
 const bufs = [
   { name: "home", href: "/" },
   { name: "projects", href: "/projects" },
   { name: "notes", href: "/notes" },
   { name: "about", href: "/about" },
-  ...(noteSlug ? [{ name: noteSlug, href: `/notes/${noteSlug}` }] : []),
+  ...(slug ? [{ name: slug, href: `/${section}/${slug}` }] : []),
 ];
-const active = current === "note" ? noteSlug : current;
+const active = slug ?? current;
 ---
 <div class="sl" id="statusbar">
   <span class="pl mode" id="mode" data-m="NORMAL" aria-hidden="true">NORMAL</span>

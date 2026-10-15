@@ -6,7 +6,7 @@ export interface NoteLike {
 }
 export interface ProjectLike {
   id: string;
-  data: { name: string; year: number; summary: string; tags: string[]; href?: string };
+  data: { name: string; year: number; summary: string; tags: string[] };
 }
 export interface SearchEntry {
   kind: string; // "page" | "project" | a note kind
@@ -34,7 +34,7 @@ export function buildIndex({ notes, projects }: { notes: NoteLike[]; projects: P
       name: p.data.name,
       text: p.data.summary,
       meta: [String(p.data.year), ...p.data.tags].join(" · "),
-      href: p.data.href ?? "/projects",
+      href: `/projects/${p.id}`,
     })),
     ...notes
       .filter((n) => n.data.draft !== true)

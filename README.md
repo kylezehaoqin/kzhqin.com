@@ -26,7 +26,9 @@ Kyle Qin's personal site: projects and notes. Astro + MDX, static output.
 
 ## Add a project
 
-Make `src/content/projects/<slug>.md` with `name`, `year`, `tags` (1-4), `summary` (140 characters at most), and optional `href`, `order`, and `featured` (the home page shows up to 4 featured projects).
+Make `src/content/projects/<slug>.md` with `name`, `year`, `period` (for example `Sep 2026–present`), `tags` (1-4), `summary` (140 characters at most), and optional `role`, `repo`, `live`, `order`, and `featured` (the home page shows up to 4 featured projects). The Markdown body becomes the page at `/projects/<slug>`; use `##` headings for each story.
+
+Skills on the home and about pages live in `src/data/skills.ts`. Each domain lists project ids as proof; the build fails if an id does not exist.
 
 ## Commands
 
