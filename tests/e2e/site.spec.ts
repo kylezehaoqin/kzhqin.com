@@ -187,6 +187,19 @@ test.describe("finder modes and tabs", () => {
     await expect(page.locator("#finder-q")).toHaveValue("d");
   });
 
+  test("closing the finder takes focus off its input at once (no lost keys after)", async ({ page }) => {
+    await page.goto("/");
+    // One synchronous task: Chrome's own focus fix-up for hidden inputs cannot run in between.
+    const stillFocused = await page.evaluate(() => {
+      const q = document.getElementById("finder-q")!;
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: ":", bubbles: true }));
+      q.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      q.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      return document.getElementById("picker")!.hidden && document.activeElement === q;
+    });
+    expect(stillFocused).toBe(false);
+  });
+
   test("a click on a tab selects it", async ({ page }) => {
     await page.goto("/");
     await page.keyboard.press(":");

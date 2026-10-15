@@ -216,7 +216,7 @@ function openFinder() {
 function closeFinder() {
   if (!overlay || !picker) return;
   overlay.hidden = true; picker.hidden = true;
-  if (q) q.readOnly = false;
+  if (q) { q.readOnly = false; q.blur(); } // returnFocus is often <body>, which cannot take focus from the input
   setMode("NORMAL");
   (returnFocus as HTMLElement | null)?.focus?.();
 }
