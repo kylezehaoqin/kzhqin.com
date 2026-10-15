@@ -326,6 +326,47 @@ test.describe("page keys", () => {
       await expect(page.locator("body")).toHaveAttribute("data-src", src);
     }
   });
+
+  test("]] and [[ jump between headings on a project page", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    const topOf = (i: number) => page.locator(".prose h2").nth(i).evaluate((h) => h.getBoundingClientRect().top);
+    await page.keyboard.press("]"); await page.keyboard.press("]");
+    expect(await topOf(0)).toBeLessThan(200);
+    await page.keyboard.press("]"); await page.keyboard.press("]");
+    expect(await topOf(1)).toBeLessThan(200);
+    expect(await topOf(1)).toBeGreaterThan(0);
+    await page.keyboard.press("["); await page.keyboard.press("[");
+    expect(await topOf(0)).toBeLessThan(200);
+    expect(await topOf(0)).toBeGreaterThan(0);
+  });
+
+  test("]] on home jumps to the next section", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press("]"); await page.keyboard.press("]");
+    expect(await page.locator("#h-projects").evaluate((h) => h.getBoundingClientRect().top)).toBeLessThan(200);
+  });
+
+  test("za folds the section at the top, zR unfolds all, zM folds all", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    await page.keyboard.press("]"); await page.keyboard.press("]");
+    await page.keyboard.press("z"); await page.keyboard.press("a");
+    await expect(page.locator(".fold").nth(0)).toHaveClass(/folded/);
+    await expect(page.locator(".fold").nth(0).locator("p").first()).toBeHidden();
+    await expect(page.locator(".prose h2").nth(0)).toHaveAttribute("aria-expanded", "false");
+    await page.keyboard.press("z"); await page.keyboard.press("R");
+    await expect(page.locator(".fold.folded")).toHaveCount(0);
+    await page.keyboard.press("z"); await page.keyboard.press("M");
+    await expect(page.locator(".fold:not(.folded)")).toHaveCount(0);
+  });
+
+  test("copy buttons still work after folds wrap the note", async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("/notes/fixture-finding");
+    await page.keyboard.press("z"); await page.keyboard.press("M");
+    await page.keyboard.press("z"); await page.keyboard.press("R");
+    await page.locator(".copy").first().click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("CREATE INDEX");
+  });
 });
 
 test.describe("phone, motion, no-JS, accessibility", () => {

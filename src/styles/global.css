@@ -266,3 +266,8 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 .zen .nav-band, .zen #statusbar, .zen footer.foot { display: none; }
 .zen #dots { opacity: 0.35; }
 .zen .layer { padding-bottom: 0; }
+/* Folds (za zM zR): the script wraps each .prose h2 and what follows it. */
+.prose > .fold { display: grid; gap: 16px; max-width: none; }
+.fold > * { margin: 0; max-width: 65ch; }
+.fold.folded > :not(h2) { display: none; }
+.fold.folded > h2::after { content: " ▸ …"; color: var(--faint); font-weight: 500; }

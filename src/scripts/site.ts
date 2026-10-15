@@ -333,6 +333,10 @@ function perform(a: Action) {
         .then(() => say(`yanked ${url}`), () => say("clipboard blocked"));
       break;
     }
+    case "section": jumpSection(a.by); break;
+    case "fold": if (longPage) foldAtTop(); break;
+    case "foldAll": folds.forEach((s) => setFold(s, true)); break;
+    case "unfoldAll": folds.forEach((s) => setFold(s, false)); break;
     case "source": {
       const src = document.body.dataset.src;
       if (src) openTab(`https://github.com/kylezehaoqin/kzhqin.com/blob/main/${src}`);
@@ -381,3 +385,37 @@ document.querySelectorAll<HTMLPreElement>(".prose pre.astro-code").forEach((pre)
   pre.replaceWith(box);
   box.append(bar, pre);
 });
+
+/* ---------------- sections and folds (]] [[ za zM zR) ---------------- */
+// Runs after the code blocks above, so the fold wrappers move finished blocks.
+const navH = () => (document.querySelector<HTMLElement>(".nav-band")?.offsetHeight ?? 0) + 8; // 0 in zen mode
+const headings = () => Array.from(document.querySelectorAll<HTMLElement>(longPage ? ".prose h2" : "main section.sec .sec-h h2"));
+function jumpSection(by: 1 | -1) {
+  const hs = headings(), y = navH();
+  const target = by === 1
+    ? hs.find((h) => h.getBoundingClientRect().top > y + 4)
+    : [...hs].reverse().find((h) => h.getBoundingClientRect().top < y - 4);
+  // Instant, like nvim's ]]: no smooth scroll, so the position is final when the key returns.
+  if (target) scrollTo({ top: scrollY + target.getBoundingClientRect().top - y, behavior: "instant" });
+}
+const folds: HTMLElement[] = [];
+if (longPage) {
+  document.querySelectorAll<HTMLElement>(".prose > h2").forEach((h) => {
+    const sec = document.createElement("section");
+    sec.className = "fold";
+    h.before(sec);
+    let n: Element | null = h;
+    while (n && !(n !== h && n.tagName === "H2")) { const next: Element | null = n.nextElementSibling; sec.append(n); n = next; }
+    h.setAttribute("aria-expanded", "true");
+    folds.push(sec);
+  });
+}
+function setFold(sec: HTMLElement, folded: boolean) {
+  sec.classList.toggle("folded", folded);
+  sec.querySelector("h2")?.setAttribute("aria-expanded", String(!folded));
+}
+function foldAtTop() {
+  const line = innerHeight / 3;
+  const sec = [...folds].reverse().find((s) => s.getBoundingClientRect().top <= line) ?? folds[0];
+  if (sec) setFold(sec, !sec.classList.contains("folded"));
+}
