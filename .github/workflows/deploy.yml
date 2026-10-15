@@ -31,6 +31,8 @@ jobs:
           install -m 700 -d ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          tar -czf - --exclude=./.git --exclude=./.github --exclude=./README.md . \
+          # Publish an explicit list only. Anything else in the repo (CLAUDE.md, docs/)
+          # must never become public. After the Astro move this becomes: -C dist .
+          tar -czf - index.html style.css \
             | ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
                 deploy@89.116.191.153 "$GITHUB_SHA"
