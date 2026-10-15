@@ -245,6 +245,30 @@ test.describe("projects and skills", () => {
   }
 });
 
+test.describe("page keys", () => {
+  test("␣uz toggles zen mode; the finder still works in zen; Esc does not leave zen", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    await page.keyboard.press(" ");
+    await expect(page.locator("#wk-grid")).toContainText("+ui");
+    await page.keyboard.press("u");
+    await expect(page.locator("#wk-grid")).toContainText("zen mode");
+    await page.keyboard.press("z");
+    await expect(page.locator("#statusbar")).toBeHidden();
+    await expect(page.locator(".nav-band")).toBeHidden();
+    await expect(page.locator("#msg")).toContainText("zen");
+    await page.keyboard.press(":");
+    await expect(page.locator("#picker")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Escape");
+    await expect(page.locator("html")).toHaveClass(/zen/);
+    await page.keyboard.press(" ");
+    await page.keyboard.press("u");
+    await page.keyboard.press("z");
+    await expect(page.locator("#statusbar")).toBeVisible();
+  });
+});
+
 test.describe("phone, motion, no-JS, accessibility", () => {
   for (const url of PAGES) {
     test(`${url} has no horizontal scroll at 390px`, async ({ page }) => {

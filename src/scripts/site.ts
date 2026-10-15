@@ -2,7 +2,7 @@
 // complete HTML without this script. Pure logic lives in src/lib (unit-tested).
 import { createFinderKeys, inTab, TABS, type Tab } from "../lib/finderkeys";
 import { rank } from "../lib/fuzzy";
-import { createKeymap, LEADER_KEYS, type Action, type Page } from "../lib/keys";
+import { createKeymap, LEADER_GROUPS, LEADER_KEYS, type Action, type Group, type Page } from "../lib/keys";
 import { scrollLabel } from "../lib/scrollpos";
 import type { SearchEntry } from "../lib/search";
 
@@ -130,6 +130,17 @@ function setMode(m: "NORMAL" | "INSERT" | "LEADER") {
   modeEl.textContent = m;
 }
 
+/* ---------------- toast messages (like nvim-notify) ---------------- */
+const msgEl = $("msg");
+let msgTimer = 0;
+function say(text: string) {
+  if (!msgEl) return;
+  msgEl.textContent = text;
+  msgEl.hidden = false;
+  clearTimeout(msgTimer);
+  msgTimer = window.setTimeout(() => { msgEl.hidden = true; }, 2500);
+}
+
 /* ---------------- finder (":" "/" or leader f) ---------------- */
 type Entry = SearchEntry & { run?: () => void };
 const COMMANDS: Entry[] = [
@@ -248,16 +259,15 @@ const HELP: [string, string][] = [
   ["H L", "prev / next buffer"], ["1-5", "go to buffer"], [": /", "find anything"],
   ["␣", "leader menu"], ["t", "theme"], ["esc", "close / clear"],
 ];
-function openWhich(kind: "leader" | "help") {
+function openWhich(kind: "leader" | "help" | Group) {
   if (!wk || !wkGrid || !wkTitle || !wkFoot) return;
   wk.hidden = false;
-  const rows: [string, string][] = kind === "leader"
-    ? Object.entries(LEADER_KEYS).map(([k, v]) => [k, v.label])
-    : HELP;
-  wkTitle.textContent = kind === "leader" ? "␣ leader" : "keymaps";
-  wkFoot.textContent = kind === "leader" ? "press a key · esc to close" : "a small easter egg · esc to close";
+  const menu = kind === "help" ? null : kind === "leader" ? LEADER_KEYS : LEADER_GROUPS[kind];
+  const rows: [string, string][] = menu ? Object.entries(menu).map(([k, v]) => [k, v.label]) : HELP;
+  wkTitle.textContent = kind === "help" ? "keymaps" : kind === "leader" ? "␣ leader" : `␣ ${kind}`;
+  wkFoot.textContent = menu ? "press a key · esc to close" : "a small easter egg · esc to close";
   wkGrid.innerHTML = rows.map(([k, d]) => `<div class="row-k"><b>${esc(k)}</b><span>${esc(d)}</span></div>`).join("");
-  setMode(kind === "leader" ? "LEADER" : "NORMAL");
+  setMode(menu ? "LEADER" : "NORMAL");
 }
 function closeWhich() {
   if (wk) wk.hidden = true;
@@ -302,6 +312,8 @@ function perform(a: Action) {
     case "find": openFinder(); break;
     case "help": if (wk?.hidden === false && wkTitle?.textContent === "keymaps") closeWhich(); else openWhich("help"); break;
     case "leader": openWhich("leader"); break;
+    case "leaderGroup": openWhich(a.group); break;
+    case "zen": { const on = root.classList.toggle("zen"); say(on ? "zen on · ␣uz to exit" : "zen off"); break; }
     case "escape": closeWhich(); sel = -1; paintSel(); break;
   }
 }
@@ -314,11 +326,11 @@ document.addEventListener("keydown", (e) => {
     meta: e.metaKey, ctrl: e.ctrlKey, alt: e.altKey,
     inEditable: !!t.closest?.("input, textarea, select, [contenteditable]"),
   });
-  if (pendEl) pendEl.textContent = keymap.pending() || (keymap.mode() === "LEADER" ? "␣" : "");
+  if (pendEl) pendEl.textContent = keymap.pending() || (keymap.mode() === "LEADER" ? "␣" + keymap.group() : "");
   if (keymap.mode() === "NORMAL" && modeEl?.dataset.m === "LEADER" && action?.type !== "leader") closeWhich();
   if (!action) return;
   e.preventDefault();
-  if (action.type !== "leader" && action.type !== "help") closeWhich();
+  if (action.type !== "leader" && action.type !== "leaderGroup" && action.type !== "help") closeWhich();
   perform(action);
 });
 

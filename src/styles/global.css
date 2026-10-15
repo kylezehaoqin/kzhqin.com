@@ -259,3 +259,10 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 /* ---------- 404 ---------- */
 .lost { display: grid; gap: 14px; }
 .lost .code { font: 600 13px var(--font-mono); color: var(--acc-text); }
+
+/* nvim-notify style toast (top right) for yank, zen, and other messages. */
+.notify { position: fixed; top: 70px; right: 16px; z-index: 30; max-width: min(420px, calc(100vw - 32px)); padding: 8px 12px; border: 1px solid var(--line); border-left: 3px solid var(--acc); border-radius: 8px; background: var(--surface); color: var(--fg); font: 12.5px/1.5 var(--font-mono); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); overflow-wrap: anywhere; }
+/* Zen mode (␣uz): only the text stays. */
+.zen .nav-band, .zen #statusbar, .zen footer.foot { display: none; }
+.zen #dots { opacity: 0.35; }
+.zen .layer { padding-bottom: 0; }
