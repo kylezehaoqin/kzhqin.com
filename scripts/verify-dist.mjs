@@ -1,5 +1,5 @@
 // Checks the built site before it may deploy. Usage: node scripts/verify-dist.mjs [dir]
-// Fails on: broken internal links/assets, "TODO" in HTML, any draft in the output,
+// Fails on: broken internal links/assets, a missing og:image, "TODO" in HTML, any draft in the output,
 // dist over 20 MB, missing index.html/404.html, or home-page JS over 30 KB gzipped.
 import fs from "node:fs";
 import path from "node:path";
@@ -8,6 +8,7 @@ import zlib from "node:zlib";
 const dir = path.resolve(process.argv[2] ?? "dist");
 const MAX_BYTES = 20 * 1024 * 1024;
 const MAX_HOME_JS_GZ = 30 * 1024;
+const SITE = "https://kzhqin.com";
 const errors = [];
 
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true })
@@ -35,6 +36,10 @@ for (const f of files.filter((x) => x.endsWith(".html"))) {
     if (url === "/" || exists(url)) continue;
     errors.push(`${rel(f)}: broken link ${url}`);
   }
+  // Link previews need an absolute og:image URL that points at a file in this build.
+  const og = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
+  if (!og) errors.push(`${rel(f)}: no og:image`);
+  else if (!og.startsWith(SITE + "/") || !exists(og.slice(SITE.length))) errors.push(`${rel(f)}: og:image ${og} is not a file in this build`);
 }
 
 // 4. No drafts: draft: true in published notes, or anything in the private drafts folder.

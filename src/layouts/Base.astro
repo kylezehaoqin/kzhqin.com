@@ -41,6 +41,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="alternate" type="application/rss+xml" title="Kyle Qin: notes" href="/rss.xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="color-scheme" content="light dark" />
@@ -48,7 +49,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={new URL("/og.png", Astro.site)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Kyle Qin: I build things, then write about what I learned." />
+    <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
       // Apply a saved theme and accent before first paint, so there is no flash.
       try {

@@ -1,0 +1,55 @@
+<!doctype html>
+<!-- Social preview card, 1200x630. Rendered by scripts/og/render.mjs into public/og.png.
+     Colors are the paper theme + ember accent from src/styles/tokens.css. -->
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  /*FONTS*/
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden; position: relative;
+    background: #fcfcfc; color: #161616;
+    font-family: "Geist Sans", sans-serif; -webkit-font-smoothing: antialiased;
+  }
+  .dots {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.11) 1.4px, transparent 1.6px);
+    background-size: 28px 28px; background-position: 14px 14px;
+    mask-image: linear-gradient(115deg, transparent 30%, #000 75%);
+  }
+  .glow {
+    position: absolute; right: -160px; top: -200px; width: 640px; height: 640px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(240, 86, 29, 0.16), transparent);
+  }
+  main { position: absolute; left: 88px; right: 88px; top: 80px; display: grid; gap: 22px; }
+  .brand { display: flex; align-items: center; gap: 14px; font: 800 30px "Nunito"; letter-spacing: -0.01em; }
+  .brand i { width: 14px; height: 14px; border-radius: 50%; background: #f0561d; box-shadow: 0 0 18px rgba(240, 86, 29, 0.45); }
+  h1 { margin-top: 58px; font: 800 104px/1.02 "Nunito"; letter-spacing: -0.03em; }
+  .grad {
+    font: 800 50px/1.15 "Nunito"; letter-spacing: -0.02em; max-width: 900px; text-wrap: balance;
+    background: linear-gradient(100deg, #f0561d 10%, #d9700f 90%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { font: 500 28px "Geist Sans"; color: #6b6b6b; }
+  .bar {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 52px; display: flex; align-items: center;
+    background: #1f2130; color: #c9cde0; font: 500 21px "Geist Mono";
+  }
+  .bar b { height: 100%; display: flex; align-items: center; padding: 0 22px; background: #6ee7a0; color: #1f2130; font-weight: 600; }
+  .bar span { padding: 0 22px; }
+  .bar .tab { height: 100%; display: flex; align-items: center; background: #3a3f5c; }
+  .bar .right { margin-left: auto; color: #9196ad; }
+</style>
+</head>
+<body>
+  <div class="dots"></div>
+  <div class="glow"></div>
+  <main>
+    <div class="brand"><i></i>kzhqin.com</div>
+    <h1>Kyle Qin</h1>
+    <div class="grad">I build things, then write about what I learned.</div>
+    <div class="sub">Full-stack developer · San Jose, CA</div>
+  </main>
+  <div class="bar"><b>NORMAL</b><span class="tab">projects</span><span>notes</span><span>about</span><span class="right">~/kzhqin.com</span></div>
+</body>
+</html>
