@@ -3,13 +3,16 @@
 // without a browser.
 
 export type Page = "home" | "projects" | "notes" | "about";
+export type Group = "g" | "u";
 
 export type Action =
   | { type: "down" } | { type: "up" } | { type: "top" } | { type: "bottom" }
   | { type: "open" } | { type: "back" }
   | { type: "prevBuffer" } | { type: "nextBuffer" } | { type: "buffer"; n: number }
   | { type: "theme" } | { type: "find" } | { type: "help" }
-  | { type: "leader" } | { type: "go"; page: Page } | { type: "escape" };
+  | { type: "leader" } | { type: "leaderGroup"; group: Group } | { type: "go"; page: Page } | { type: "escape" }
+  | { type: "external" } | { type: "section"; by: 1 | -1 } | { type: "hover" } | { type: "yank" }
+  | { type: "fold" } | { type: "foldAll" } | { type: "unfoldAll" } | { type: "source" } | { type: "zen" };
 
 export interface KeyInput {
   key: string;
@@ -30,25 +33,48 @@ const SINGLE: Record<string, Action> = {
   h: { type: "back" },
   H: { type: "prevBuffer" },
   L: { type: "nextBuffer" },
+  K: { type: "hover" },
   t: { type: "theme" },
   ":": { type: "find" },
   "/": { type: "find" },
   "?": { type: "help" },
 };
 
-export const LEADER_KEYS: Record<string, { label: string; action: Action }> = {
+// Two-key sequences, as in nvim. The first key of each is a prefix that waits.
+export const SEQUENCES: Record<string, Action> = {
+  gg: { type: "top" },
+  gx: { type: "external" },
+  "]]": { type: "section", by: 1 },
+  "[[": { type: "section", by: -1 },
+  yy: { type: "yank" },
+  za: { type: "fold" },
+  zM: { type: "foldAll" },
+  zR: { type: "unfoldAll" },
+};
+const PREFIXES = new Set(Object.keys(SEQUENCES).map((s) => s[0]));
+
+type Entry = { label: string; action: Action };
+export const LEADER_KEYS: Record<string, Entry> = {
   f: { label: "find", action: { type: "find" } },
   p: { label: "projects", action: { type: "go", page: "projects" } },
   n: { label: "notes", action: { type: "go", page: "notes" } },
   a: { label: "about", action: { type: "go", page: "about" } },
   h: { label: "home", action: { type: "go", page: "home" } },
   t: { label: "toggle theme", action: { type: "theme" } },
+  g: { label: "+git", action: { type: "leaderGroup", group: "g" } },
+  u: { label: "+ui", action: { type: "leaderGroup", group: "u" } },
   "?": { label: "all keys", action: { type: "help" } },
+};
+
+export const LEADER_GROUPS: Record<Group, Record<string, Entry>> = {
+  g: { B: { label: "source on GitHub", action: { type: "source" } } },
+  u: { z: { label: "zen mode", action: { type: "zen" } } },
 };
 
 export function createKeymap() {
   let pending = "";
   let mode: Mode = "NORMAL";
+  let group: Group | "" = "";
 
   function feed(e: KeyInput): Action | null {
     // Browser shortcuts and typing always win over the easter egg.
@@ -57,23 +83,36 @@ export function createKeymap() {
     if (e.key === "Escape") {
       pending = "";
       mode = "NORMAL";
+      group = "";
       return { type: "escape" };
     }
 
     if (mode === "LEADER") {
+      if (group) {
+        const hit = LEADER_GROUPS[group][e.key];
+        group = "";
+        mode = "NORMAL";
+        return hit?.action ?? { type: "escape" };
+      }
+      const hit = LEADER_KEYS[e.key];
+      if (hit?.action.type === "leaderGroup") {
+        group = hit.action.group; // stay in LEADER for the group's key
+        return hit.action;
+      }
       mode = "NORMAL";
-      return LEADER_KEYS[e.key]?.action ?? { type: "escape" };
+      return hit?.action ?? { type: "escape" };
     }
 
-    if (e.key === "g") {
-      if (pending === "g") {
-        pending = "";
-        return { type: "top" };
-      }
-      pending = "g";
+    if (pending) {
+      const seq = SEQUENCES[pending + e.key];
+      pending = "";
+      if (seq) return seq;
+      // A broken prefix is dropped; the key then runs on its own (below).
+    }
+    if (PREFIXES.has(e.key)) {
+      pending = e.key;
       return null;
     }
-    pending = ""; // a lone g followed by another key is dropped
 
     if (e.key === " ") {
       mode = "LEADER";
@@ -87,5 +126,6 @@ export function createKeymap() {
     feed,
     pending: () => pending,
     mode: () => mode,
+    group: () => group,
   };
 }

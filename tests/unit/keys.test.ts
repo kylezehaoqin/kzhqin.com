@@ -94,4 +94,65 @@ describe("keymap", () => {
     expect(m.feed(k("0"))).toBeNull();
     expect(m.feed(k("x"))).toBeNull();
   });
+
+  it("runs two-key sequences", () => {
+    const m = createKeymap();
+    const seq = (a: string, b: string) => { m.feed(k(a)); return m.feed(k(b)); };
+    expect(seq("g", "x")).toEqual({ type: "external" });
+    expect(seq("]", "]")).toEqual({ type: "section", by: 1 });
+    expect(seq("[", "[")).toEqual({ type: "section", by: -1 });
+    expect(seq("y", "y")).toEqual({ type: "yank" });
+    expect(seq("z", "a")).toEqual({ type: "fold" });
+    expect(seq("z", "M")).toEqual({ type: "foldAll" });
+    expect(seq("z", "R")).toEqual({ type: "unfoldAll" });
+  });
+
+  it("shows any prefix as pending", () => {
+    const m = createKeymap();
+    for (const p of ["g", "]", "[", "y", "z"]) {
+      expect(m.feed(k(p))).toBeNull();
+      expect(m.pending()).toBe(p);
+      m.feed(k("Escape"));
+    }
+  });
+
+  it("a broken prefix drops, and a second prefix becomes pending", () => {
+    const m = createKeymap();
+    m.feed(k("g"));
+    expect(m.feed(k("q"))).toBeNull();
+    expect(m.pending()).toBe("");
+    m.feed(k("g"));
+    expect(m.feed(k("y"))).toBeNull();
+    expect(m.pending()).toBe("y");
+    expect(m.feed(k("y"))).toEqual({ type: "yank" });
+  });
+
+  it("K opens the hover card", () => {
+    expect(createKeymap().feed(k("K"))).toEqual({ type: "hover" });
+  });
+
+  it("runs leader groups: space g B, space u z", () => {
+    const m = createKeymap();
+    m.feed(k(" "));
+    expect(m.feed(k("g"))).toEqual({ type: "leaderGroup", group: "g" });
+    expect(m.mode()).toBe("LEADER");
+    expect(m.group()).toBe("g");
+    expect(m.feed(k("B"))).toEqual({ type: "source" });
+    expect(m.mode()).toBe("NORMAL");
+    expect(m.group()).toBe("");
+    m.feed(k(" "));
+    m.feed(k("u"));
+    expect(m.feed(k("z"))).toEqual({ type: "zen" });
+  });
+
+  it("an unknown key in a leader group closes the menu; escape clears the group", () => {
+    const m = createKeymap();
+    m.feed(k(" ")); m.feed(k("g"));
+    expect(m.feed(k("q"))).toEqual({ type: "escape" });
+    expect(m.mode()).toBe("NORMAL");
+    m.feed(k(" ")); m.feed(k("u"));
+    m.feed(k("Escape"));
+    expect(m.group()).toBe("");
+    expect(m.mode()).toBe("NORMAL");
+  });
 });
