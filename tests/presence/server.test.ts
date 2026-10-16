@@ -157,4 +157,20 @@ describe("presence server", () => {
     });
     expect((await fetch(`${base}/presence/healthz`)).status).toBe(200);
   });
+
+  it("a request path Node cannot parse as a URL is refused (4xx), and the server keeps working", async () => {
+    // Caddy cleans "//x:99999/../presence/stream" to /presence/stream for its matcher,
+    // but forwards the raw path; new URL() then throws on the bad port.
+    const base = await start();
+    const { port } = srv;
+    const reply = await new Promise<string>((resolve) => {
+      let got = "";
+      const sock = net.connect(port, "127.0.0.1", () => {
+        sock.write("GET //x:99999/../presence/stream HTTP/1.1\r\nHost: kzhqin.com\r\nConnection: close\r\n\r\n");
+      });
+      sock.on("data", (c) => { got += c; }); sock.on("close", () => resolve(got)); sock.on("error", () => resolve(got));
+    });
+    expect(reply).toMatch(/^HTTP\/1\.1 4\d\d /);
+    expect((await fetch(`${base}/presence/healthz`)).status).toBe(200);
+  });
 });

@@ -72,6 +72,30 @@ test("the presence segment passes axe in both themes", async ({ browser }) => {
   }
 });
 
+test("an HTTP error hides a stale count, and the client tries again after 60 s", async ({ browser }) => {
+  const ctx = await browser.newContext({ baseURL: BASE });
+  const page = await ctx.newPage();
+  let calls = 0, down = true;
+  await page.route("**/presence/stream*", (route) => {
+    calls++;
+    if (calls === 1) // a short stream that ends at once: the browser reconnects after 200 ms
+      return route.fulfill({ status: 200, contentType: "text/event-stream",
+        body: `retry: 200\n\nevent: hello\ndata: {"id":"aaaaaaaa","token":"${"0".repeat(32)}"}\n\nevent: snap\ndata: {"n":5,"dots":[]}\n\n` });
+    if (down) return route.fulfill({ status: 502, body: "" }); // EventSource closes for good on a non-200
+    return route.continue();
+  });
+  await page.clock.install();
+  await page.goto("/about");
+  await page.clock.runFor(4000); // the client starts after idle
+  await expect(count(page)).toHaveAttribute("data-n", "5", { timeout: 5000 });
+  await expect(count(page)).toBeHidden({ timeout: 5000 }); // the 502 must not leave "● 5 here" on screen
+  down = false;
+  await page.clock.runFor(61_000);
+  await expect(count(page)).toHaveAttribute("data-n", "1", { timeout: 8000 });
+  await expect(count(page)).toBeVisible();
+  await ctx.close();
+});
+
 test("with the service down, pages work and show no segment", async ({ browser }) => {
   const ctx = await browser.newContext({ baseURL: "http://127.0.0.1:4402" });
   const page = await ctx.newPage();

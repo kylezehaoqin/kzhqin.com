@@ -11,9 +11,10 @@ on:
 concurrency:
   group: deploy-presence
   cancel-in-progress: false
+# Least privilege: the test job runs `npm ci` (third-party install scripts), so
+# only the deploy job gets packages: write (tests/unit/workflows.test.ts checks this).
 permissions:
   contents: read
-  packages: write
 jobs:
   test:
     runs-on: ubuntu-24.04
@@ -29,6 +30,9 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
     env:
       IMAGE: ghcr.io/kylezehaoqin/kzhqin-presence:${{ github.sha }}
     steps:

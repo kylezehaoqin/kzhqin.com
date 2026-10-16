@@ -79,7 +79,10 @@ export function createPresenceServer({
   }
 
   const server = http.createServer((req, res) => {
-    const url = new URL(req.url ?? "/", "http://presence");
+    // Caddy matches on the cleaned path but forwards the raw one; a raw path like
+    // "//x:99999/.." makes new URL() throw. That must be a 400, never a crash.
+    let url;
+    try { url = new URL("http://presence" + (req.url ?? "/")); } catch { refuse("url"); return send(res, 400, "", {}, true); }
     const route = { "/presence/healthz": "GET", "/presence/stream": "GET", "/presence/where": "POST" }[url.pathname];
     if (!route) return send(res, 404);
     if (req.method !== route) return send(res, 405, "", { Allow: route });

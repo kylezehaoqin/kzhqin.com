@@ -52,6 +52,14 @@ describe("presence state", () => {
     expect(createState().join(v("a", "/../x"))).toEqual({ ok: false, reason: "page" });
   });
 
+  it("by default accepts a 2nd where() 900 ms later (the client waits 1000 ms by its own clock; network jitter shifts arrival)", () => {
+    const s = createState();
+    s.join(v("a", "/x", "1.1.1.1", 1));
+    expect(s.where(tok(1), 0.1, 10_000)).toBe("ok");
+    expect(s.where(tok(1), 0.2, 10_900)).toBe("ok");
+    expect(s.where(tok(1), 0.3, 11_300)).toBe("rate");
+  });
+
   it("rate limits where(): one per minPostGapMs per token", () => {
     const s = createState({ minPostGapMs: 1000 });
     s.join(v("a", "/x", "1.1.1.1", 1));

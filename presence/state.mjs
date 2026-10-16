@@ -7,7 +7,9 @@ export const validPage = (p) => typeof p === "string" && PAGE_RE.test(p) && !p.i
 export const validY = (y) => typeof y === "number" && Number.isFinite(y) && y >= 0 && y <= 1;
 export const validToken = (t) => typeof t === "string" && TOKEN_RE.test(t);
 
-export function createState({ total = 200, perIp = 4, minPostGapMs = 1000 } = {}) {
+// minPostGapMs is 900, not 1000: the client waits 1000 ms by its own clock, and
+// network jitter can make two POSTs arrive a little closer than they were sent.
+export function createState({ total = 200, perIp = 4, minPostGapMs = 900 } = {}) {
   const byId = new Map();    // id -> visitor
   const byToken = new Map(); // token -> visitor
   const perIpCount = new Map();

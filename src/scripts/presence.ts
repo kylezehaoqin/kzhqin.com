@@ -39,7 +39,10 @@ export function startPresence(api: Api) {
     const wait = 1000 - (Date.now() - lastPost);
     if (wait > 0) { clearTimeout(postTimer); postTimer = window.setTimeout(sendY, wait); return; }
     lastY = y; lastPost = Date.now();
-    fetch("/presence/where", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, y }), keepalive: true }).catch(() => {});
+    // A refused or lost update must not stick: forget lastY so the next scroll (or the timer) sends again.
+    const retry = () => { lastY = null; clearTimeout(postTimer); postTimer = window.setTimeout(sendY, 1000); };
+    fetch("/presence/where", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, y }), keepalive: true })
+      .then((r) => { if (!r.ok) retry(); }, retry);
   }
 
   function connect() {
@@ -61,8 +64,15 @@ export function startPresence(api: Api) {
       mark();
       if (had || dots.size) api.requestDraw(); // no dots before or now: no frame to draw
     });
+    // EventSource retries a dropped stream by itself, but an HTTP error (502, 503,
+    // 429) closes it for good. Either way: after 3 errors in a row, or once it is
+    // closed, hide the count and try again in 60 s.
     es.onerror = () => {
-      if (++errors >= 3) { disconnect(); retryTimer = window.setTimeout(connect, 60_000); }
+      if (++errors >= 3 || es?.readyState === EventSource.CLOSED) {
+        disconnect();
+        clearTimeout(retryTimer);
+        retryTimer = window.setTimeout(() => { errors = 0; connect(); }, 60_000);
+      }
     };
   }
   function disconnect() {
