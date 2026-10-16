@@ -214,6 +214,7 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 .sl .pink { background: var(--sl-pink); }
 .sl .blue { background: var(--sl-blue); }
 .sl .orange { background: var(--sl-orange); }
+.sl .green { background: var(--sl-green); }
 @media (max-width: 640px) { .sl .hide-sm { display: none; } }
 
 /* ---------- finder (Telescope) + which-key ---------- */

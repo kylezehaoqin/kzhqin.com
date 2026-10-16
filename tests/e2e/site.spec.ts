@@ -460,7 +460,9 @@ test.describe("phone, motion, no-JS, accessibility", () => {
       (window as unknown as { rafCalls: number }).rafCalls = 0;
       window.requestAnimationFrame = (cb) => { (window as unknown as { rafCalls: number }).rafCalls++; return raf(cb); };
     });
-    await page.goto("/about");
+    // The server with no presence service: other test pages on /about would show as
+    // presence dots, and drawing them also takes frames.
+    await page.goto("http://127.0.0.1:4402/about");
     await page.waitForTimeout(300);
     const before = await page.evaluate(() => (window as unknown as { rafCalls: number }).rafCalls);
     await page.mouse.click(30, 400);
