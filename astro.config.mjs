@@ -15,6 +15,4 @@ export default defineConfig({
   markdown: {
     shikiConfig: { themes: { light: "github-light", dark: "github-dark" } },
   },
-  // `npm run presence` + `npm run dev`: same-origin /presence, like Caddy in production.
-  vite: { server: { proxy: { "/presence": { target: "http://127.0.0.1:8090", changeOrigin: false } } } },
 });

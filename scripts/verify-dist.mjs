@@ -1,7 +1,6 @@
 // Checks the built site before it may deploy. Usage: node scripts/verify-dist.mjs [dir]
 // Fails on: broken internal links/assets, a missing og:image, "TODO" in HTML, any draft in the output,
-// dist over 20 MB, missing index.html/404.html, home-page JS over 30 KB gzipped,
-// or a missing or oversized presence chunk (over 4 KB gzipped).
+// dist over 20 MB, missing index.html/404.html, or home-page JS over 30 KB gzipped.
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
@@ -67,18 +66,8 @@ for (const [, src] of home.matchAll(/<script[^>]+src="(\/[^"]+)"/g)) homeJs += z
 for (const [, body] of home.matchAll(/<script(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g)) homeJs += zlib.gzipSync(body).length;
 if (homeJs > MAX_HOME_JS_GZ) errors.push(`home page loads ${(homeJs / 1024).toFixed(1)} KB of JS gzipped (limit 30 KB)`);
 
-// 6. The presence client chunk (loaded with import() after idle) stays small.
-const MAX_PRESENCE_GZ = 4 * 1024;
-const presenceChunks = files.filter((f) => /^\/_astro\/presence\.[\w-]+\.js$/.test(rel(f)));
-if (!presenceChunks.length) errors.push("no presence chunk in _astro/ (did the file name change?)");
-let presenceGz = 0;
-for (const f of presenceChunks) {
-  presenceGz = zlib.gzipSync(fs.readFileSync(f)).length;
-  if (presenceGz > MAX_PRESENCE_GZ) errors.push(`${rel(f)} is ${(presenceGz / 1024).toFixed(1)} KB gz (limit 4 KB)`);
-}
-
 if (errors.length) {
   console.error(`verify-dist: ${errors.length} problem(s) in ${dir}\n` + errors.map((e) => `  - ${e}`).join("\n"));
   process.exit(1);
 }
-console.log(`verify-dist: ok (${files.length} files, ${(total / 1024).toFixed(0)} KB, home JS ${(homeJs / 1024).toFixed(1)} KB gz, presence ${(presenceGz / 1024).toFixed(1)} KB gz)`);
+console.log(`verify-dist: ok (${files.length} files, ${(total / 1024).toFixed(0)} KB, home JS ${(homeJs / 1024).toFixed(1)} KB gz)`);

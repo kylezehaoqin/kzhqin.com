@@ -1,6 +1,5 @@
 // Tiny static server for tests: serves a build folder the way Caddy does in
 // production (site.caddy): /x -> x.html, unknown paths -> 404.html with a 404.
-// With PRESENCE_URL set, /presence/* is proxied there (like Caddy).
 // Usage: node scripts/serve.mjs <dir> <port>
 import http from "node:http";
 import fs from "node:fs";
@@ -21,19 +20,7 @@ function resolve(urlPath) {
   return null;
 }
 
-const PRESENCE = process.env.PRESENCE_URL;
-function proxy(req, res) {
-  const up = http.request(PRESENCE + req.url, {
-    method: req.method,
-    headers: { ...req.headers, "x-forwarded-for": req.socket.remoteAddress ?? "" },
-  }, (r) => { res.writeHead(r.statusCode ?? 502, r.headers); r.pipe(res); });
-  up.on("error", () => { if (!res.headersSent) res.writeHead(502); res.end(); });
-  res.on("close", () => up.destroy());
-  req.pipe(up);
-}
-
 http.createServer((req, res) => {
-  if (PRESENCE && req.url?.startsWith("/presence/")) return proxy(req, res);
   const file = resolve(req.url ?? "/");
   const status = file ? 200 : 404;
   const body = file ?? path.join(root, "404.html");

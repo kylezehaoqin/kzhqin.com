@@ -58,8 +58,6 @@ function resize() {
   requestDraw();
 }
 function requestDraw() { if (ctx && !frame) frame = requestAnimationFrame(draw); }
-// Extra drawings on the dot canvas (presence dots). Each returns true while it still animates.
-const layers: ((c: CanvasRenderingContext2D, rgb: string) => boolean)[] = [];
 function draw(now: number) {
   frame = 0;
   if (!ctx) return;
@@ -81,9 +79,7 @@ function draw(now: number) {
       ctx.fillRect(x - s / 2, y - s / 2, s, s);
     }
   }
-  let more = false;
-  for (const layer of layers) more = layer(ctx, dotRGB) || more;
-  if (ripples.length || more) requestDraw();
+  if (ripples.length) requestDraw();
 }
 if (ctx) {
   addEventListener("resize", resize);
@@ -153,8 +149,6 @@ const COMMANDS: Entry[] = [
   { kind: "command", name: "accent signal", text: "Cyan accent.", href: "", run: () => setAccent("signal") },
   { kind: "command", name: "top", text: "Scroll to the top.", href: "", run: () => scrollTo(0, 0) },
   { kind: "command", name: "help", text: "Show every key.", href: "", run: () => openWhich("help") },
-  { kind: "command", name: "presence off", text: "Stop showing you to other visitors, and hide them.", href: "", run: () => { store.set("presence", "off"); presence?.off(); } },
-  { kind: "command", name: "presence on", text: "Show live visitors again.", href: "", run: () => { try { localStorage.removeItem("presence"); } catch { /* private mode */ } presence?.on(); } },
 ];
 const ICON: Record<string, string> = { page: "▸", project: "◆", command: ":", finding: "✎", workflow: "✎", note: "✎" };
 const overlay = $("overlay"), picker = $("picker");
@@ -402,13 +396,6 @@ document.addEventListener("keydown", (e) => {
   e.preventDefault();
   if (action.type !== "leader" && action.type !== "leaderGroup" && action.type !== "help") closeWhich();
   perform(action);
-});
-
-/* ---------------- live presence (src/scripts/presence.ts, loaded after idle) ---------------- */
-let presence: { off(): void; on(): void } | null = null;
-const idle = (fn: () => void) => ("requestIdleCallback" in window ? requestIdleCallback(fn, { timeout: 3000 }) : setTimeout(fn, 1000));
-if (ctx) idle(() => {
-  import("./presence").then((m) => { presence = m.startPresence({ addLayer: (fn) => { layers.push(fn); }, requestDraw }); });
 });
 
 /* ---------------- code blocks: header bar + copy ---------------- */
