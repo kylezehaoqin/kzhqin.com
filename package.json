@@ -13,7 +13,8 @@
     "test": "vitest run",
     "build:e2e": "KZ_NOTES_DIR=tests/fixtures/notes KZ_OUT=dist-e2e PUBLIC_SHA=e2e0000 astro build",
     "test:e2e": "playwright test",
-    "verify": "node scripts/verify-dist.mjs"
+    "verify": "node scripts/verify-dist.mjs",
+    "presence": "ALLOWED_ORIGINS=http://localhost:4321 node presence/server.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "8.0.2",
