@@ -40,6 +40,18 @@ for (const f of files.filter((x) => x.endsWith(".html"))) {
   const og = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
   if (!og) errors.push(`${rel(f)}: no og:image`);
   else if (!og.startsWith(SITE + "/") || !exists(og.slice(SITE.length))) errors.push(`${rel(f)}: og:image ${og} is not a file in this build`);
+  // Canonical and og:url use the clean URL the sitemap lists (/projects, not /projects.html).
+  // The 404 page is not a real address: noindex, and no canonical.
+  const canon = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
+  const ogUrl = html.match(/<meta property="og:url" content="([^"]+)"/)?.[1];
+  if (rel(f) === "/404.html") {
+    if (canon || ogUrl) errors.push(`/404.html: has a canonical or og:url`);
+    if (!/<meta name="robots" content="noindex"/.test(html)) errors.push(`/404.html: no noindex`);
+  } else {
+    const want = SITE + rel(f).replace(/(^|\/)index\.html$/, "$1").replace(/\.html$/, "");
+    if (canon !== want) errors.push(`${rel(f)}: canonical ${canon} (want ${want})`);
+    if (ogUrl !== want) errors.push(`${rel(f)}: og:url ${ogUrl} (want ${want})`);
+  }
 }
 
 // 4. No drafts: draft: true in published notes, or anything in the private drafts folder.

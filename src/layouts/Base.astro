@@ -39,7 +39,9 @@ const DEFAULT_SRC: Record<string, string> = {
 };
 const source = src ?? DEFAULT_SRC[current] ?? "";
 const fullTitle = title ? `${title} · Kyle Qin` : "Kyle Qin";
-const canonical = new URL(Astro.url.pathname, Astro.site);
+// build.format "file" makes the path /projects.html; the public URL is /projects (as in the sitemap).
+const cleanPath = Astro.url.pathname.replace(/(^|\/)index\.html$/, "$1").replace(/\.html$/, "");
+const canonical = current === "404" ? null : new URL(cleanPath, Astro.site);
 ---
 <!doctype html>
 <html lang="en">
@@ -48,7 +50,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {canonical ? <link rel="canonical" href={canonical} /> : <meta name="robots" content="noindex" />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="alternate" type="application/rss+xml" title="Kyle Qin: notes" href="/rss.xml" />
@@ -57,7 +59,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:type" content={type} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical} />
+    {canonical && <meta property="og:url" content={canonical} />}
     <meta property="og:image" content={new URL("/og.png", Astro.site)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
