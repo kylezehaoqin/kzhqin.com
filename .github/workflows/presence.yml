@@ -1,0 +1,58 @@
+# Presence service: push to main that touches presence/ = tests, then a new
+# image on GHCR, then live behind https://kzhqin.com/presence/. The deploy key
+# can only run `deploy-gate app presence`; the gate rolls back if the new image
+# is not healthy. Server side: kylezehaoqin/infra (apps/presence/, MANUAL.md).
+name: presence
+on:
+  push:
+    branches: [main]
+    paths: ["presence/**", ".github/workflows/presence.yml"]
+  workflow_dispatch:
+concurrency:
+  group: deploy-presence
+  cancel-in-progress: false
+permissions:
+  contents: read
+  packages: write
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx vitest run tests/unit/presence-state.test.ts tests/presence
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    env:
+      IMAGE: ghcr.io/kylezehaoqin/kzhqin-presence:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: presence
+          file: presence/Dockerfile
+          push: true
+          tags: ${{ env.IMAGE }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+      - name: Deploy
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.PRESENCE_DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          test -n "$DEPLOY_SSH_KEY" || { echo "PRESENCE_DEPLOY_SSH_KEY is not set"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            deploy@89.116.191.153 "$GITHUB_SHA" < /dev/null
