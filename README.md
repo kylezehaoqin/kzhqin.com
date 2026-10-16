@@ -39,7 +39,14 @@ Skills on the home and about pages live in `src/data/skills.ts`. Each domain lis
 | `npm run check` | Types and frontmatter |
 | `npm test` | Unit tests |
 | `npm run verify` | Checks `dist/`: links, TODOs, drafts, size, JS budget |
-| `npm run build:e2e && npm run test:e2e` | End-to-end tests on a build with fixture notes |
+| `npm run build:e2e && npm run test:e2e` | End-to-end tests on a build with fixture notes (they start the presence servers too) |
+| `npm run presence` | The live presence service on port 8090, for `npm run dev` |
+
+## Live presence
+
+Other visitors on the same page show as soft dots in the side margins, and the status bar shows `● N here` for the whole site. The service is in `presence/`: Node with no npm dependencies, Server-Sent Events plus small POSTs, nothing stored. Locally, run `npm run presence` next to `npm run dev`. Visitors can opt out with `:presence off`.
+
+It deploys on its own with `.github/workflows/presence.yml` (only when `presence/` changes) as a `deploy-gate` app; server side: `apps/presence` in `kylezehaoqin/infra`. If the service is down, the site works as before and the `● N` segment hides.
 
 ## How it deploys
 
