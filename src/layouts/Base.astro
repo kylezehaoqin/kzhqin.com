@@ -87,7 +87,7 @@ const canonical = current === "404" ? null : new URL(cleanPath, Astro.site);
     <StatusBar current={current} slug={slug} />
     <Finder />
     <WhichKey />
-    <div class="notify" id="msg" role="status" aria-live="polite" hidden></div>
+    <div class="notify" id="msg" role="status" aria-live="polite"></div>
     <script>
       import "../scripts/site.ts";
     </script>

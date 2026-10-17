@@ -261,6 +261,7 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 .lost .code { font: 600 13px var(--font-mono); color: var(--acc-text); }
 
 /* nvim-notify style toast (top right) for yank, zen, and other messages. */
+.notify:empty { opacity: 0; pointer-events: none; } /* stays in the page as a live region */
 .notify { position: fixed; top: 70px; right: 16px; z-index: 30; max-width: min(420px, calc(100vw - 32px)); padding: 8px 12px; border: 1px solid var(--line); border-left: 3px solid var(--acc); border-radius: 8px; background: var(--surface); color: var(--fg); font: 12.5px/1.5 var(--font-mono); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); overflow-wrap: anywhere; }
 /* Zen mode (␣uz): only the text stays. */
 .zen .nav-band, .zen #statusbar, .zen footer.foot { display: none; }
@@ -271,6 +272,11 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 .fold > * { margin: 0; max-width: 65ch; }
 .fold.folded > :not(h2) { display: none; }
 .fold.folded > h2::after { content: " ▸ …"; color: var(--faint); font-weight: 500; }
+.fold-btn { all: unset; cursor: pointer; }
+.fold-btn:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; border-radius: 4px; }
+/* The finder's own mode label (the status bar is hidden in zen). */
+.picker .prompt .fmode { font: 600 10.5px var(--font-mono); letter-spacing: .04em; padding: 1px 6px; border-radius: 4px; color: var(--sl-ink); background: var(--sl-green); }
+.picker .prompt .fmode[data-m="NORMAL"] { background: var(--sl-purple); }
 /* Hover card (K) next to the selected row. */
 .hovercard { position: absolute; z-index: 25; display: grid; gap: 4px; max-width: min(440px, calc(100vw - 32px)); padding: 12px 14px; font-size: 14px; }
 .hovercard b { font: 800 15px var(--font-display); }

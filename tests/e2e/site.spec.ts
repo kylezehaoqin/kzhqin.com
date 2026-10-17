@@ -222,12 +222,31 @@ test.describe("finder modes and tabs", () => {
     await expect(page.locator("#finder-q")).toBeFocused();
   });
 
-  test("the open finder with tabs has no serious accessibility problems", async ({ page }) => {
-    await page.goto("/");
+  for (const scheme of ["light", "dark"] as const) {
+    test(`the open finder with tabs has no serious accessibility problems (${scheme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      await page.goto("/");
+      const dark = await page.evaluate(() => matchMedia("(prefers-color-scheme: dark)").matches);
+      expect(dark).toBe(scheme === "dark");
+      await page.keyboard.press(":");
+      await expect(page.locator("#finder-tabs")).toBeVisible();
+      const results = await new AxeBuilder({ page }).include("#picker").analyze();
+      expect(results.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);
+    });
+  }
+
+  test("the finder shows its own mode (visible in zen, where the status bar is hidden)", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    await page.keyboard.press(" "); await page.keyboard.press("u"); await page.keyboard.press("z");
+    await expect(page.locator("#statusbar")).toBeHidden();
     await page.keyboard.press(":");
-    await expect(page.locator("#finder-tabs")).toBeVisible();
-    const results = await new AxeBuilder({ page }).include("#picker").analyze();
-    expect(results.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);
+    const mode = page.locator("#finder-mode");
+    await expect(mode).toBeVisible();
+    await expect(mode).toHaveText("INSERT");
+    await page.keyboard.press("Escape");
+    await expect(mode).toHaveText("NORMAL");
+    await page.keyboard.press("i");
+    await expect(mode).toHaveText("INSERT");
   });
 });
 
@@ -385,11 +404,46 @@ test.describe("page keys", () => {
     await page.keyboard.press("z"); await page.keyboard.press("a");
     await expect(page.locator(".fold").nth(0)).toHaveClass(/folded/);
     await expect(page.locator(".fold").nth(0).locator("p").first()).toBeHidden();
-    await expect(page.locator(".prose h2").nth(0)).toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator(".prose h2 button.fold-btn").nth(0)).toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator(".prose h2").nth(0)).not.toHaveAttribute("aria-expanded", /.*/);
     await page.keyboard.press("z"); await page.keyboard.press("R");
     await expect(page.locator(".fold.folded")).toHaveCount(0);
     await page.keyboard.press("z"); await page.keyboard.press("M");
     await expect(page.locator(".fold:not(.folded)")).toHaveCount(0);
+  });
+
+  test("a fold heading is a button: a click folds and unfolds, aria-expanded follows", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    const btn = page.locator(".prose h2 button.fold-btn").nth(1);
+    await expect(btn).toHaveAttribute("aria-expanded", "true");
+    await btn.click();
+    await expect(page.locator(".fold").nth(1)).toHaveClass(/folded/);
+    await expect(btn).toHaveAttribute("aria-expanded", "false");
+    await btn.click();
+    await expect(page.locator(".fold").nth(1)).not.toHaveClass(/folded/);
+  });
+
+  test("a #link into a folded section unfolds it", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    await page.keyboard.press("z"); await page.keyboard.press("M");
+    await expect(page.locator(".fold:not(.folded)")).toHaveCount(0);
+    await page.evaluate(() => { location.hash = "#measuring-indexes"; });
+    const sec = page.locator(".fold", { has: page.locator("#measuring-indexes") });
+    await expect(sec).not.toHaveClass(/folded/);
+    await expect(sec.locator("p").first()).toBeVisible();
+  });
+
+  test("the message area is a live region that is always present, empty when idle", async ({ page }) => {
+    await page.goto("/projects/deuce");
+    const msg = page.locator("#msg");
+    await expect(msg).toHaveAttribute("role", "status");
+    await expect(msg).toHaveAttribute("aria-live", "polite");
+    await expect(msg).not.toHaveAttribute("hidden", /.*/);
+    expect(await msg.evaluate((el) => getComputedStyle(el).display)).not.toBe("none");
+    await page.keyboard.press(" "); await page.keyboard.press("u"); await page.keyboard.press("z");
+    await expect(msg).toContainText("zen");
+    await expect(msg).toHaveText("", { timeout: 4000 });
+    await expect(msg).not.toHaveAttribute("hidden", /.*/);
   });
 
   test("copy buttons still work after folds wrap the note", async ({ page, context }) => {

@@ -133,12 +133,13 @@ function setMode(m: "NORMAL" | "INSERT" | "LEADER") {
 /* ---------------- toast messages (like nvim-notify) ---------------- */
 const msgEl = $("msg");
 let msgTimer = 0;
+// The live region stays in the page (never `hidden`), so screen readers announce
+// each new text. It is only see-through while empty (CSS .notify:empty).
 function say(text: string) {
   if (!msgEl) return;
   msgEl.textContent = text;
-  msgEl.hidden = false;
   clearTimeout(msgTimer);
-  msgTimer = window.setTimeout(() => { msgEl.hidden = true; }, 2500);
+  msgTimer = window.setTimeout(() => { msgEl.textContent = ""; }, 2500);
 }
 
 /* ---------------- finder (":" "/" or leader f) ---------------- */
@@ -159,6 +160,7 @@ let shown: ReturnType<typeof rank<Entry>> = [];
 let cur = 0;
 let returnFocus: Element | null = null;
 const fkeys = createFinderKeys();
+const fmodeEl = $("finder-mode"); // the finder's own mode label: the status bar is hidden in zen
 let tab: Tab = "All";
 const tabsEl = $("finder-tabs");
 function setTab(t: Tab) {
@@ -170,6 +172,7 @@ function setFinderMode(m: "INSERT" | "NORMAL") {
   if (!q) return;
   q.readOnly = m === "NORMAL";
   setMode(m);
+  if (fmodeEl) { fmodeEl.textContent = m; fmodeEl.dataset.m = m; }
   if (m === "INSERT") { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
 }
 
@@ -441,14 +444,32 @@ if (longPage) {
     h.before(sec);
     let n: Element | null = h;
     while (n && !(n !== h && n.tagName === "H2")) { const next: Element | null = n.nextElementSibling; sec.append(n); n = next; }
-    h.setAttribute("aria-expanded", "true");
+    // Disclosure pattern: aria-expanded belongs on a button, not on the heading.
+    // A heading with a link inside keeps its text (a link cannot sit in a button).
+    if (!h.querySelector("a")) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "fold-btn";
+      btn.setAttribute("aria-expanded", "true");
+      btn.append(...h.childNodes);
+      h.append(btn);
+      btn.addEventListener("click", () => setFold(sec, !sec.classList.contains("folded")));
+    }
     folds.push(sec);
   });
 }
 function setFold(sec: HTMLElement, folded: boolean) {
   sec.classList.toggle("folded", folded);
-  sec.querySelector("h2")?.setAttribute("aria-expanded", String(!folded));
+  sec.querySelector("h2 > .fold-btn")?.setAttribute("aria-expanded", String(!folded));
 }
+// A #link into a folded section would land on hidden text: unfold it first.
+function unfoldHash() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const el = id ? document.getElementById(id) : null;
+  const sec = el?.closest<HTMLElement>(".fold.folded");
+  if (el && sec) { setFold(sec, false); el.scrollIntoView(); }
+}
+addEventListener("hashchange", unfoldHash);
 function foldAtTop() {
   const line = innerHeight / 3;
   const sec = [...folds].reverse().find((s) => s.getBoundingClientRect().top <= line) ?? folds[0];
