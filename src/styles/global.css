@@ -46,7 +46,15 @@ img { max-width: 100%; height: auto; }
 .nav ul a[aria-current="page"] { color: var(--fg); }
 .icon-btn { border: 0; background: transparent; cursor: pointer; line-height: 1.4; }
 .sep { display: block; width: 1px; height: 16px; background: var(--line); margin: 0 4px; }
-@media (max-width: 520px) { .nav ul .hide-sm { display: none; } }
+@media (max-width: 520px) { .nav ul .hide-sm { display: none; } } /* the divider goes first, every link stays */
+/* Below 400px: tighter links. If they still do not fit (320px, with Notes), they wrap under the name. */
+@media (max-width: 400px) {
+  .nav { gap: 4px 8px; flex-wrap: wrap; }
+  .nav ul { gap: 0; margin-left: auto; }
+  .nav ul a, .icon-btn { padding-inline: 7px; }
+}
+@media (max-width: 360px) { .brand { gap: 8px; font-size: 15px; } .nav ul a { padding-inline: 5px; } }
+.nw { white-space: nowrap; }
 
 main { display: grid; gap: 64px; padding-block: 56px 48px; }
 main.page { gap: 28px; }
@@ -276,6 +284,20 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 .zen .nav-band, .zen #statusbar, .zen footer.foot { display: none; }
 .zen #dots { opacity: 0.35; }
 .zen .layer { padding-bottom: 0; }
+
+/* Touch screens have no keyboard: no status bar and no ":" hint. --sl-h 0 also frees
+   the space the bar kept at the bottom. Every control is at least 44px tall; small
+   text links get a taller hit area (padding) with no change to the layout (margin). */
+@media (hover: none) and (pointer: coarse) {
+  :root { --sl-h: 0px; }
+  .sl, .kbd-hint { display: none; }
+  .brand, .nav ul a, .icon-btn { display: flex; align-items: center; min-height: 44px; }
+  .icon-btn { justify-content: center; min-width: 44px; }
+  .btn { min-height: 44px; }
+  .sec-h a, .back, .about-strip a { padding-block: 14px; margin-block: -14px; }
+  .skills .proof a { padding-block: 12px; }
+}
+
 /* Folds (za zM zR): the script wraps each .prose h2 and what follows it. */
 .prose > .fold { display: grid; gap: 16px; max-width: none; }
 .fold > * { margin: 0; max-width: 65ch; }

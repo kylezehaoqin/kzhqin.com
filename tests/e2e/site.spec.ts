@@ -544,6 +544,34 @@ test.describe("phone, motion, no-JS, accessibility", () => {
     expect(after - before).toBeLessThanOrEqual(1);
   });
 
+  for (const width of [320, 390]) {
+    for (const touch of [false, true]) test(`every nav link fits at ${width}px${touch ? " on touch" : ""}`, async ({ browser }) => {
+      const ctx = await browser.newContext({ viewport: { width, height: 800 }, hasTouch: touch, isMobile: touch });
+      const page = await ctx.newPage();
+      await page.goto("/");
+      for (const name of ["Projects", "Notes", "About"]) await expect(page.locator(".nav").getByRole("link", { name })).toBeVisible();
+      // Inside the 16px page gutter (the links may wrap under the name, but never off screen).
+      const { right, room } = await page.locator(".nav ul").evaluate((ul) => ({ right: ul.getBoundingClientRect().right, room: document.documentElement.clientWidth - 16 }));
+      expect(right).toBeLessThanOrEqual(room + 0.5);
+      await ctx.close();
+    });
+  }
+
+  test("a touch phone gets no status bar, no key hint, and 44px targets", async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const page = await ctx.newPage();
+    for (const url of ["/", "/projects/deuce", "/missing"]) {
+      await page.goto(url);
+      expect(await page.evaluate(() => matchMedia("(hover: none) and (pointer: coarse)").matches)).toBe(true);
+      await expect(page.locator(".sl")).toBeHidden();
+      await expect(page.locator("footer .kbd-hint")).toBeHidden();
+      const small = await page.locator(".nav a, .icon-btn, main .btn, .sec-h a, .back, .about-strip a").evaluateAll((els) =>
+        els.filter((e) => e.getClientRects().length > 0 && e.getBoundingClientRect().height < 44).map((e) => e.textContent?.trim()));
+      expect(small, url).toEqual([]);
+    }
+    await ctx.close();
+  });
+
   test("without JavaScript, every page and link still works", async ({ browser }) => {
     const ctx = await browser.newContext({ javaScriptEnabled: false });
     const page = await ctx.newPage();

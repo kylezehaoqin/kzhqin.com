@@ -12,8 +12,8 @@ const here = (p: string) => (current === p || `${current}s` === p ? "page" : und
       <ul>
         <li><a href="/projects" aria-current={here("projects")}>Projects</a></li>
         {notes && <li><a href="/notes" aria-current={here("notes")}>Notes</a></li>}
-        <li class="hide-sm"><a href="/about" aria-current={here("about")}>About</a></li>
-        <li aria-hidden="true"><span class="sep"></span></li>
+        <li><a href="/about" aria-current={here("about")}>About</a></li>
+        <li class="hide-sm" aria-hidden="true"><span class="sep"></span></li>
         <li><button class="icon-btn" id="theme-btn" type="button" aria-label="Switch between light and dark theme">◐</button></li>
       </ul>
     </nav>
