@@ -9,3 +9,4 @@ src/content/drafts/*
 test-results/
 playwright-report/
 dist-e2e/
+.impeccable/
