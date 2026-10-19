@@ -351,8 +351,28 @@ function paintSel() {
   el.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
 }
 
+/* ---------------- Space: page-down until the visitor finds the keys ---------------- */
+// Space is the browser's page-down. A visitor who never heard of the easter egg must
+// get a scroll, not a menu. So the leader takes Space only after a visitor has used
+// the hidden keys on purpose. The keydown handler calls noteKeyUse with each action.
+//
+// Policy (Kyle, 10-18): only the deliberate keys arm it (":" "/" "?"; the footer hint
+// teaches ":"), so a stray j or t never takes Space away. It is remembered, so a return
+// visitor who found the keys gets the leader at once.
+const ARMED = "keys-armed";
+let armed = store.get(ARMED) === "1";
+
+function noteKeyUse(a: Action) {
+  if (armed || (a.type !== "find" && a.type !== "help")) return;
+  armed = true;
+  store.set(ARMED, "1");
+}
+function leaderArmed(): boolean {
+  return armed;
+}
+
 /* ---------------- the hidden keys ---------------- */
-const keymap = createKeymap();
+const keymap = createKeymap({ leaderArmed });
 const bufferLinks = () => Array.from(document.querySelectorAll<HTMLAnchorElement>(".bufs .buf"));
 const PAGE_HREF: Record<Page, string> = { home: "/", projects: "/projects", notes: "/notes", about: "/about" };
 function perform(a: Action) {
@@ -425,6 +445,7 @@ document.addEventListener("keydown", (e) => {
   if (keymap.mode() === "NORMAL" && modeEl?.dataset.m === "LEADER" && action?.type !== "leader") closeWhich();
   if (!action) return;
   e.preventDefault();
+  noteKeyUse(action);
   if (action.type !== "leader" && action.type !== "leaderGroup" && action.type !== "help") closeWhich();
   perform(action);
 });

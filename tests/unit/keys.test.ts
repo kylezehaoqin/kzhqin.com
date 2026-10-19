@@ -58,6 +58,17 @@ describe("keymap", () => {
     expect(m.feed(k("?"))).toEqual({ type: "help" });
   });
 
+  it("leaves Space to the browser until the leader is armed", () => {
+    let armed = false;
+    const m = createKeymap({ leaderArmed: () => armed });
+    expect(m.feed(k(" "))).toBeNull();
+    expect(m.mode()).toBe("NORMAL");
+    expect(m.feed(k("j"))).toEqual({ type: "down" }); // the other keys work as before
+    armed = true;
+    expect(m.feed(k(" "))).toEqual({ type: "leader" });
+    expect(m.mode()).toBe("LEADER");
+  });
+
   it("closes the leader menu on an unknown key", () => {
     const m = createKeymap();
     m.feed(k(" "));

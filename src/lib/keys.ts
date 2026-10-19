@@ -73,7 +73,8 @@ export const LEADER_GROUPS: Record<Group, Record<string, Entry>> = {
   u: { z: { label: "zen mode", action: { type: "zen" } } },
 };
 
-export function createKeymap() {
+/** leaderArmed: until it returns true, Space is not the leader and the browser scrolls the page. */
+export function createKeymap({ leaderArmed = () => true }: { leaderArmed?: () => boolean } = {}) {
   let pending = "";
   let mode: Mode = "NORMAL";
   let group: Group | "" = "";
@@ -118,6 +119,7 @@ export function createKeymap() {
     }
 
     if (e.key === " ") {
+      if (!leaderArmed()) return null;
       mode = "LEADER";
       return { type: "leader" };
     }

@@ -8,6 +8,12 @@ test.beforeEach(async ({ page }) => {
   await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<title>external</title>" }));
 });
 
+// Space is the browser's page-down until the visitor uses the keys on purpose; "?" counts.
+async function armLeader(page: Page) {
+  await page.keyboard.press("?");
+  await page.keyboard.press("Escape");
+}
+
 async function noConsoleErrors(page: Page, url: string) {
   const errors: string[] = [];
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
@@ -131,8 +137,33 @@ test.describe("finder and keys", () => {
     await expect(page.locator(".row").first()).toHaveClass(/sel/);
   });
 
+  test("on a first visit, Space scrolls the page and opens no menu", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press(" ");
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
+    await expect(page.locator("#whichkey")).toBeHidden();
+    await expect(page.locator("#mode")).toHaveText("NORMAL");
+  });
+
+  test("a stray key does not arm Space; \":\" does, and a reload remembers it", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press("j");
+    await page.keyboard.press("Escape");
+    await page.keyboard.press(" ");
+    await expect(page.locator("#whichkey")).toBeHidden();
+    await page.keyboard.press(":");
+    await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+    await page.keyboard.press(" ");
+    await expect(page.locator("#whichkey")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await page.reload();
+    await page.keyboard.press(" ");
+    await expect(page.locator("#whichkey")).toBeVisible();
+  });
+
   test("Space presses a focused button, even with the leader armed", async ({ page }) => {
     await page.goto("/");
+    await armLeader(page);
     const before = await page.evaluate(() => document.documentElement.dataset.theme ?? "");
     await page.locator("#theme-btn").focus();
     await page.keyboard.press(" ");
@@ -182,6 +213,7 @@ test.describe("finder and keys", () => {
 
   test("space opens the leader menu; p goes to projects", async ({ page }) => {
     await page.goto("/");
+    await armLeader(page);
     await page.keyboard.press(" ");
     await expect(page.locator("#whichkey")).toBeVisible();
     await expect(page.locator("#mode")).toHaveText("LEADER");
@@ -330,6 +362,7 @@ test.describe("finder modes and tabs", () => {
 
   test("the finder shows its own mode (visible in zen, where the status bar is hidden)", async ({ page }) => {
     await page.goto("/projects/deuce");
+    await armLeader(page);
     await page.keyboard.press(" "); await page.keyboard.press("u"); await page.keyboard.press("z");
     await expect(page.locator("#statusbar")).toBeHidden();
     await page.keyboard.press(":");
@@ -393,6 +426,7 @@ test.describe("projects and skills", () => {
 test.describe("page keys", () => {
   test("␣uz toggles zen mode; the finder still works in zen; Esc does not leave zen", async ({ page }) => {
     await page.goto("/projects/deuce");
+    await armLeader(page);
     await page.keyboard.press(" ");
     await expect(page.locator("#wk-grid")).toContainText("+ui");
     await page.keyboard.press("u");
@@ -455,6 +489,7 @@ test.describe("page keys", () => {
   test("␣gB opens this page's source on GitHub", async ({ page }) => {
     await page.goto("/projects/deuce");
     const popup = page.waitForEvent("popup");
+    await armLeader(page);
     await page.keyboard.press(" ");
     await page.keyboard.press("g");
     await page.keyboard.press("B");
@@ -533,6 +568,7 @@ test.describe("page keys", () => {
     await expect(msg).toHaveAttribute("aria-live", "polite");
     await expect(msg).not.toHaveAttribute("hidden", /.*/);
     expect(await msg.evaluate((el) => getComputedStyle(el).display)).not.toBe("none");
+    await armLeader(page);
     await page.keyboard.press(" "); await page.keyboard.press("u"); await page.keyboard.press("z");
     await expect(msg).toContainText("zen");
     await expect(msg).toHaveText("", { timeout: 4000 });
@@ -567,6 +603,7 @@ test.describe("page keys", () => {
     await page.keyboard.press("z"); await page.keyboard.press("Shift+R");
     await expect(page.locator(".fold.folded")).toHaveCount(0);
     const popup = page.waitForEvent("popup");
+    await armLeader(page);
     await page.keyboard.press(" "); await page.keyboard.press("g"); await page.keyboard.press("Shift+B");
     expect((await popup).url()).toContain("/blob/main/src/content/projects/deuce.md");
     await page.goto("/projects");
