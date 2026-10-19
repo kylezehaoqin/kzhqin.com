@@ -17,7 +17,7 @@ export interface SearchEntry {
 }
 
 const PAGES: SearchEntry[] = [
-  { kind: "page", name: "home", text: "The front page: intro, projects, latest notes.", href: "/" },
+  { kind: "page", name: "home", text: "The front page: intro, projects, and stack.", href: "/" },
   { kind: "page", name: "projects", text: "Everything I have built, newest first.", href: "/projects" },
   { kind: "page", name: "notes", text: "Findings, workflows, and things I want to remember.", href: "/notes" },
   { kind: "page", name: "about", text: "Who I am, what I do, and where I have worked.", href: "/about" },

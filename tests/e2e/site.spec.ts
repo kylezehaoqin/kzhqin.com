@@ -28,7 +28,7 @@ test.describe("pages", () => {
 
   test("home shows hero, projects, notes, and about", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Hi, I'm Kyle. I build things");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Hi, I'm Kyle. I build full-stack apps");
     await expect(page.locator(".rows .row")).toHaveCount(4);
     await expect(page.locator(".list .nrow")).toHaveCount(2);
     await expect(page.getByText("Read more about me")).toBeVisible();

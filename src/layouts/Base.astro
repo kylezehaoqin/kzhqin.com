@@ -26,7 +26,7 @@ interface Props {
 }
 const {
   title,
-  description = "Kyle Qin, full-stack developer in San Jose. Projects and notes on what I build and learn.",
+  description = "Kyle Qin, full-stack developer in San Jose. I build apps for data-heavy problems, end to end.",
   current,
   slug,
   type = "website",
@@ -63,7 +63,7 @@ const canonical = current === "404" ? null : new URL(cleanPath, Astro.site);
     <meta property="og:image" content={new URL("/og.png", Astro.site)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Kyle Qin: I build things, then write about what I learned." />
+    <meta property="og:image:alt" content="Kyle Qin: I build full-stack apps for data-heavy problems." />
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
       // Apply a saved theme and accent before first paint, so there is no flash.

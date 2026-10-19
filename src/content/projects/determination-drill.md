@@ -3,7 +3,7 @@ name: Determination Drill
 year: 2026
 period: Aug 2026–present
 tags: [javascript, node]
-summary: Sight-ID trainer for the CNPS Field Botanist exam. 500 plants from photos, scored the way the Board scores.
+summary: Sight-ID trainer for the California Native Plant Society's Field Botanist exam. 500 plants from photos, scored the way the exam is scored.
 repo: https://github.com/kylezehaoqin/cnps-drill
 featured: true
 order: 2
