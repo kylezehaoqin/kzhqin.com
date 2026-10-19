@@ -9,6 +9,6 @@ const notes = await getNotes();
     <div class="page-h"><h1>Notes</h1><p>Findings, workflows, and things I want to remember.</p></div>
     {notes.length > 0
       ? <ul class="list">{notes.map((n) => <NoteRow note={n} />)}</ul>
-      : <p class="empty">First notes coming soon.</p>}
+      : <p class="empty">First notes coming soon. Until then, see the <a href="/projects">projects</a>.</p>}
   </main>
 </Base>

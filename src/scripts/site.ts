@@ -142,6 +142,26 @@ function say(text: string) {
   msgTimer = window.setTimeout(() => { msgEl.textContent = ""; }, 2500);
 }
 
+/* ---------------- copy email (hero, about) ---------------- */
+// The button is a mailto: link. With a clipboard, a click copies the address
+// instead, because many visitors use webmail and mailto: opens the wrong app.
+// A blocked clipboard falls back to the mailto: link.
+document.querySelectorAll<HTMLAnchorElement>("a[data-copy]").forEach((a) => {
+  if (!navigator.clipboard) return;
+  a.setAttribute("aria-describedby", "copy-hint");
+  let timer = 0;
+  a.addEventListener("click", (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    navigator.clipboard.writeText(a.dataset.copy ?? "").then(() => {
+      a.dataset.done = "";
+      say(`copied ${a.dataset.copy}`);
+      clearTimeout(timer);
+      timer = window.setTimeout(() => delete a.dataset.done, 1800);
+    }, () => { location.href = a.href; });
+  });
+});
+
 /* ---------------- finder (":" "/" or leader f) ---------------- */
 type Entry = SearchEntry & { run?: () => void };
 const COMMANDS: Entry[] = [

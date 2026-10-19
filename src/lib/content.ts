@@ -12,6 +12,10 @@ export async function getNotes(): Promise<Note[]> {
   return [...notes, ...drafts].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 }
 
+/** False until the first note ships. While false, nothing links to /notes,
+ *  so a visitor never lands on an empty section (verify-dist checks this). */
+export const hasNotes = async () => (await getNotes()).length > 0;
+
 export const isDraft = (n: Note) => n.collection === "drafts" || n.data.draft;
 
 /** Newest year first, then the `order` field. */

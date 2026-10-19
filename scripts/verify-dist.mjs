@@ -1,6 +1,7 @@
 // Checks the built site before it may deploy. Usage: node scripts/verify-dist.mjs [dir]
 // Fails on: broken internal links/assets, a missing og:image, "TODO" in HTML, any draft in the output,
-// dist over 20 MB, missing index.html/404.html, or home-page JS over 30 KB gzipped.
+// dist over 20 MB, missing index.html/404.html, a link to /notes with no note published,
+// or home-page JS over 30 KB gzipped.
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
@@ -71,7 +72,16 @@ for (const id of draftIds) {
     errors.push(`draft "${id}" is in the build`);
 }
 
-// 5. JavaScript the home page loads.
+// 5. No published notes: nothing may link to the empty /notes page (nav, status bar, 404, finder).
+const noteDir = path.join(dir, "notes");
+const notePages = fs.existsSync(noteDir) ? fs.readdirSync(noteDir).filter((x) => x.endsWith(".html")) : [];
+if (notePages.length === 0) {
+  for (const f of files.filter((x) => /\.(html|json)$/.test(x))) {
+    if (/"\/notes"/.test(fs.readFileSync(f, "utf8"))) errors.push(`${rel(f)}: links to /notes, but no note is published`);
+  }
+}
+
+// 6. JavaScript the home page loads.
 const home = fs.existsSync(path.join(dir, "index.html")) ? fs.readFileSync(path.join(dir, "index.html"), "utf8") : "";
 let homeJs = 0;
 for (const [, src] of home.matchAll(/<script[^>]+src="(\/[^"]+)"/g)) homeJs += zlib.gzipSync(fs.readFileSync(path.join(dir, src))).length;

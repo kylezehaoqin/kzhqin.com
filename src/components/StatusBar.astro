@@ -1,11 +1,12 @@
 ---
+import { hasNotes } from "../lib/content";
 interface Props { current: string; slug?: string }
 const { current, slug } = Astro.props;
 const section = current === "project" ? "projects" : "notes";
 const bufs = [
   { name: "home", href: "/" },
   { name: "projects", href: "/projects" },
-  { name: "notes", href: "/notes" },
+  ...((await hasNotes()) ? [{ name: "notes", href: "/notes" }] : []), // the numbers 1-5 follow this list
   { name: "about", href: "/about" },
   ...(slug ? [{ name: slug, href: `/${section}/${slug}` }] : []),
 ];

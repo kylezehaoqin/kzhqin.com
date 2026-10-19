@@ -1,0 +1,7 @@
+---
+// Shows its content only once a note is published. Used in MDX copy that links
+// to /notes, so the sentence comes back by itself with the first note.
+import { hasNotes } from "../../lib/content";
+const show = await hasNotes();
+---
+{show && <slot />}

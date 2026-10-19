@@ -5,10 +5,12 @@ description: About Kyle Qin, full-stack developer in San Jose.
 ---
 import Experience from "../components/Experience.astro";
 import Skills from "../components/Skills.astro";
+import Contact from "../components/Contact.astro";
+import IfNotes from "../components/mdx/IfNotes.astro";
 
 I'm a full-stack developer in San Jose. I studied computer science and web science at RPI, then built and ran production apps as a contractor for education and e-commerce clients.
 
-Most of what I build lately starts with a question I can't let go of: why a query is slow, how to learn 500 plants before an exam, what a racket's swing weight actually changes. I write the answers down as [notes](/notes).
+Most of what I build lately starts with a question I can't let go of: why a query is slow, how to learn 500 plants before an exam, what a racket's swing weight actually changes.<IfNotes> I write the answers down as [notes](/notes).</IfNotes>
 
 Off the keyboard, I play league tennis.
 
@@ -19,3 +21,7 @@ Off the keyboard, I play league tennis.
 ## Stack
 
 <Skills />
+
+## Contact
+
+<Contact />

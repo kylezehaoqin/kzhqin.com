@@ -34,6 +34,27 @@ test.describe("pages", () => {
     await expect(page.getByText("Read more about me")).toBeVisible();
   });
 
+  test("the email button copies the address", async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("/");
+    const btn = page.locator(".hero a.email");
+    await expect(btn).toHaveAttribute("href", "mailto:kylezh.qin@gmail.com");
+    await expect(btn).toHaveAttribute("aria-describedby", "copy-hint");
+    await btn.click();
+    await expect(page.locator("#msg")).toHaveText("copied kylezh.qin@gmail.com");
+    await expect(btn).toHaveAttribute("data-done", "");
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("kylezh.qin@gmail.com");
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test("with no clipboard, the email button stays a plain mailto: link", async ({ page }) => {
+    await page.addInitScript(() => { Object.defineProperty(navigator, "clipboard", { value: undefined }); });
+    await page.goto("/about");
+    const btn = page.locator(".prose a.email");
+    await expect(btn).toHaveAttribute("href", "mailto:kylezh.qin@gmail.com");
+    await expect(btn).not.toHaveAttribute("aria-describedby", /./);
+  });
+
   test("unknown paths get the 404 page", async ({ page }) => {
     const res = await page.goto("/missing");
     expect(res?.status()).toBe(404);

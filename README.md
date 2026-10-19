@@ -22,6 +22,8 @@ Kyle Qin's personal site: projects and notes. Astro + MDX, static output.
 2. Preview: `npm run dev`, then open http://localhost:4321.
 3. Publish: `git push` to `main`. The note is live in about 3 minutes.
 
+**Before the first note:** while no note is published, nothing links to `/notes` (nav, status bar, home section, 404 button, finder, the About sentence in `<IfNotes>`), and `verify-dist` fails any build that does. The first published note brings all of them back; there is nothing to switch on.
+
 **Drafts:** this repo is public. `draft: true` hides a note from the site, but anyone can read it on GitHub. For private drafts, use `src/content/drafts/` (gitignored). `npm run dev` shows them; builds never include them.
 
 ## Add a project

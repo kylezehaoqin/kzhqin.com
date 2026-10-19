@@ -1,0 +1,19 @@
+---
+// GitHub, LinkedIn, the resume (only when public/resume.pdf exists), and email.
+// The email is a mailto: link. site.ts turns a click into a copy and keeps
+// mailto: as the fallback, so it works with no JS and with the clipboard blocked.
+// site.ts also links #copy-hint to the button, but only when the copy can work.
+import fs from "node:fs";
+import { EMAIL, GITHUB, LINKEDIN } from "../data/contact";
+const hasResume = fs.existsSync("public/resume.pdf");
+---
+<div class="links">
+  <a class="btn primary nav-item" href={GITHUB} rel="noopener">GitHub ↗</a>
+  <a class="btn nav-item" href={LINKEDIN} rel="noopener">LinkedIn ↗</a>
+  {hasResume && <a class="btn nav-item" href="/resume.pdf">Resume</a>}
+  <a class="btn nav-item email" href={`mailto:${EMAIL}`} data-copy={EMAIL}>
+    <svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14"><rect x="5.5" y="5.5" width="8" height="8" rx="2" /><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5" /></svg>
+    <span>{EMAIL}</span>
+  </a>
+  <span class="sr-only" id="copy-hint">Copies the address</span>
+</div>
