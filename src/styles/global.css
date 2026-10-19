@@ -18,6 +18,9 @@ img { max-width: 100%; height: auto; }
 }
 /* Author styles (display: grid on .picker etc.) beat the browser's [hidden] rule. */
 [hidden] { display: none !important; }
+.skip { position: fixed; z-index: 40; top: 8px; left: 8px; padding: 10px 14px; border-radius: 10px; background: var(--fg); color: var(--bg); font: 600 14px var(--font-body); text-decoration: none; transform: translateY(-200%); }
+.skip:focus-visible { transform: none; }
+#main { scroll-margin-top: 80px; } /* clears the sticky nav after the skip link */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
 
 #dots { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }

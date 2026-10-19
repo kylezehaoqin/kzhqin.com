@@ -11,7 +11,7 @@ const projects = all.filter((p) => p.data.featured).slice(0, 4);
 const notes = (await getNotes()).slice(0, 3);
 ---
 <Base current="home">
-  <main>
+  <main id="main">
     <section class="hero">
       <span class="status"><i aria-hidden="true"></i>Open to full-stack roles · <span class="nw">San Jose, CA</span></span>
       <h1>Hi, I'm Kyle.{" "}<span class="grad">I build full-stack apps for <span class="nw">data-heavy</span> problems.</span></h1>

@@ -108,6 +108,55 @@ test.describe("finder and keys", () => {
     await expect(page.locator(".row").first()).toHaveClass(/sel/);
   });
 
+  test("Space presses a focused button, even with the leader armed", async ({ page }) => {
+    await page.goto("/");
+    const before = await page.evaluate(() => document.documentElement.dataset.theme ?? "");
+    await page.locator("#theme-btn").focus();
+    await page.keyboard.press(" ");
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme ?? "")).not.toBe(before);
+    await expect(page.locator("#whichkey")).toBeHidden();
+  });
+
+  test("Enter on a focused link follows it; after j, Enter opens the selected row", async ({ page }) => {
+    await page.goto("/");
+    await page.locator(".nav a", { hasText: "Projects" }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/projects$/);
+    await page.goto("/");
+    await page.locator(".nav a", { hasText: "About" }).focus();
+    await page.locator("body").evaluate(() => (document.activeElement as HTMLElement).blur());
+    await page.keyboard.press("j");
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/github\.com\/kylezehaoqin|\/projects\//);
+  });
+
+  test("the skip link is the first Tab stop and jumps to the content", async ({ page }) => {
+    await page.goto("/about");
+    await page.keyboard.press("Tab");
+    const skip = page.locator("a.skip");
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeInViewport();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/#main$/);
+    await page.keyboard.press("Tab");
+    expect(await page.evaluate(() => !!document.activeElement?.closest("main"))).toBe(true);
+  });
+
+  test("when search.json fails, the finder says so and retries on the next open", async ({ page }) => {
+    let fail = true;
+    await page.route("**/search.json", (r) => (fail ? r.fulfill({ status: 500, body: "" }) : r.continue()));
+    await page.goto("/");
+    await page.keyboard.press(":");
+    await page.keyboard.type("deuce");
+    await expect(page.locator("#finder-results li.none")).toContainText("did not load");
+    fail = false;
+    await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+    await expect(page.locator("#picker")).toBeHidden();
+    await page.keyboard.press(":");
+    await page.keyboard.type("deuce");
+    await expect(page.locator("#finder-results li.on .nm")).toHaveText("Deuce");
+  });
+
   test("space opens the leader menu; p goes to projects", async ({ page }) => {
     await page.goto("/");
     await page.keyboard.press(" ");

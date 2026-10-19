@@ -17,7 +17,7 @@ const { Content } = await render(project);
 const { name, period, role, tags, summary, repo, live } = project.data;
 ---
 <Base title={name} description={summary} current="project" slug={project.id} type="article" src={project.filePath} ext={live ?? repo}>
-  <main>
+  <main id="main">
     <article class="post">
       <a class="back" href="/projects">← all projects</a>
       <header>

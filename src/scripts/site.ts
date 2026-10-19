@@ -196,11 +196,14 @@ function setFinderMode(m: "INSERT" | "NORMAL") {
   if (m === "INSERT") { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
 }
 
+// Offline or an HTTP error: the finder keeps its commands, says why pages and projects
+// are missing, and tries again the next time it opens.
+let indexFailed = false;
 function loadIndex() {
   loaded ??= fetch("/search.json")
-    .then((r) => (r.ok ? r.json() : []))
-    .then((index: SearchEntry[]) => { entries = [...index, ...COMMANDS]; })
-    .catch(() => { /* offline: commands still work */ });
+    .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+    .then((index: SearchEntry[]) => { entries = [...index, ...COMMANDS]; indexFailed = false; })
+    .catch(() => { indexFailed = true; loaded = null; });
   return loaded;
 }
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
@@ -217,7 +220,7 @@ function renderResults() {
         const name = Array.from(r.item.name).map((ch, j) => (hits.has(j) ? `<mark>${esc(ch)}</mark>` : esc(ch))).join("");
         return `<li role="option" id="fr-${i}" data-i="${i}" class="${i === cur ? "on" : ""}" aria-selected="${i === cur}"><span class="ic">${ICON[r.item.kind] ?? "•"}</span><span class="nm">${name}</span><span class="kd">${esc(r.item.kind)}</span></li>`;
       }).join("")
-    : `<li class="none">no match</li>`;
+    : `<li class="none">${indexFailed ? "the search index did not load, so only commands are here. close and press : to try again" : "no match"}</li>`;
   q.setAttribute("aria-activedescendant", shown.length ? `fr-${cur}` : "");
   const pick = shown[cur]?.item;
   previewEl.innerHTML = '<span class="title">Preview</span>' + (pick
@@ -337,6 +340,8 @@ function toggleCard() {
 // Close on scroll, but not on a scroll that the selection itself caused in the last 300 ms.
 addEventListener("scroll", () => { if (!card.hidden && performance.now() - cardOpenedAt > 300) closeCard(); }, { passive: true });
 addEventListener("click", closeCard);
+// Tab or a click moves focus away from the j/k selection: drop it, so Enter follows focus.
+addEventListener("focusin", (e) => { if (sel >= 0 && e.target !== items()[sel]) { sel = -1; paintSel(); } });
 function paintSel() {
   document.querySelectorAll(".sel").forEach((el) => el.classList.remove("sel"));
   const list = items();
@@ -408,6 +413,9 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   const t = e.target as HTMLElement;
+  // A focused link or button keeps Enter and Space, as in any page. Enter opens the
+  // j/k selection instead while there is one (focusin below clears a stale selection).
+  if (((e.key === "Enter" && sel < 0) || e.key === " ") && t.closest?.("a[href], button, summary, [role=button]")) return;
   const action = keymap.feed({
     key: e.key,
     meta: e.metaKey, ctrl: e.ctrlKey, alt: e.altKey,

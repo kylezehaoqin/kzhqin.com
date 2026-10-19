@@ -5,7 +5,7 @@ import { getProjects } from "../lib/content";
 const projects = await getProjects();
 ---
 <Base title="Projects" current="projects" description="Things Kyle Qin built, newest first.">
-  <main class="page">
+  <main id="main" class="page">
     <div class="page-h"><h1>Projects</h1><p>Things I built, newest first.</p></div>
     <ul class="rows">{projects.map((p) => <ProjectRow project={p} />)}</ul>
   </main>

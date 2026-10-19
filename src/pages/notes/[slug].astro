@@ -17,7 +17,7 @@ const { Content } = await render(note);
 const { title, date, updated, kind, tags, summary } = note.data;
 ---
 <Base title={title} description={summary} current="note" slug={note.id} type="article" src={note.filePath}>
-  <main>
+  <main id="main">
     <article class="post">
       <a class="back" href="/notes">← all notes</a>
       <header>
