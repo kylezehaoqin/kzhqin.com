@@ -36,6 +36,7 @@
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   --col: 720px;
+  --measure: 32em; /* reading text, about 70 characters of Geist (65ch was the whole column: Geist's "0" is wide) */
   --sl-h: 26px;
 }
 

@@ -55,6 +55,29 @@ test.describe("pages", () => {
     await expect(btn).not.toHaveAttribute("aria-describedby", /./);
   });
 
+  for (const url of PAGES) {
+    test(`${url} never skips a heading level`, async ({ page }) => {
+      await page.goto(url);
+      const levels = await page.locator("main :is(h1, h2, h3, h4)").evaluateAll((hs) => hs.map((h) => Number(h.tagName[1])));
+      expect(levels[0]).toBe(1);
+      levels.forEach((l, i) => { if (i > 0) expect(l, `heading ${i}`).toBeLessThanOrEqual(levels[i - 1] + 1); });
+    });
+  }
+
+  test("/about: Experience is flush with its heading; paragraphs keep a reading measure", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/about");
+    const { h2, xp, chars } = await page.evaluate(() => {
+      const p = document.querySelector(".prose > p")!;
+      const ctx = document.createElement("canvas").getContext("2d")!;
+      ctx.font = getComputedStyle(p).font;
+      const perChar = ctx.measureText(p.textContent!).width / p.textContent!.length;
+      return { h2: document.querySelector(".prose h2")!.getBoundingClientRect().left, xp: document.querySelector(".xp li")!.getBoundingClientRect().left, chars: p.getBoundingClientRect().width / perChar };
+    });
+    expect(Math.abs(xp - h2)).toBeLessThan(1);
+    expect(chars).toBeLessThanOrEqual(75);
+  });
+
   test("unknown paths get the 404 page", async ({ page }) => {
     const res = await page.goto("/missing");
     expect(res?.status()).toBe(404);
@@ -325,7 +348,7 @@ test.describe("projects and skills", () => {
     await page.goto("/projects");
     const rows = page.locator(".rows .row");
     await expect(rows).toHaveCount(10);
-    const entries = await rows.evaluateAll((els) => els.map((a) => ({ href: a.getAttribute("href"), name: a.querySelector("h3")?.textContent })));
+    const entries = await rows.evaluateAll((els) => els.map((a) => ({ href: a.getAttribute("href"), name: a.querySelector(".t")?.textContent })));
     for (const { href, name } of entries) {
       expect(href).toMatch(/^\/projects\/[a-z0-9-]+$/);
       await page.goto(href!);
@@ -392,7 +415,7 @@ test.describe("page keys", () => {
 
   test("gx on a project row opens its repo in a new tab", async ({ page }) => {
     await page.goto("/projects");
-    const n = await page.locator(".row").evaluateAll((els) => els.findIndex((e) => e.querySelector("h3")?.textContent === "Deuce"));
+    const n = await page.locator(".row").evaluateAll((els) => els.findIndex((e) => e.querySelector(".t")?.textContent === "Deuce"));
     for (let i = 0; i <= n; i++) await page.keyboard.press("j");
     const popup = page.waitForEvent("popup");
     await page.keyboard.press("g");

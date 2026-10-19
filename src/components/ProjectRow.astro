@@ -1,14 +1,17 @@
 ---
 import type { Project } from "../lib/content";
-interface Props { project: Project }
-const { id, data: { name, year, period, tags, summary, repo, live } } = Astro.props.project;
+// level: 3 under a section heading (home), 2 right under the page h1 (/projects).
+interface Props { project: Project; level?: 2 | 3 }
+const { project, level = 3 } = Astro.props;
+const { id, data: { name, year, period, tags, summary, repo, live } } = project;
+const H = level === 2 ? "h2" : "h3";
 const path = `/projects/${id}`;
 ---
 <li>
   <a class="row nav-item" href={path} data-url={new URL(path, Astro.site).href} data-ext={live ?? repo}
      data-meta={[period, ...tags].join(" · ")} data-summary={summary}>
     <span class="yr">{year}</span>
-    <h3>{name}</h3>
+    <H class="t">{name}</H>
     <span class="tg">{tags.join(" · ")}</span>
     <p>{summary}</p>
   </a>
