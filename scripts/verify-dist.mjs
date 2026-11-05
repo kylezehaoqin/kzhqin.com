@@ -1,6 +1,6 @@
 // Checks the built site before it may deploy. Usage: node scripts/verify-dist.mjs [dir]
 // Fails on: broken internal links/assets, a missing og:image, "TODO" in HTML, any draft in the output,
-// dist over 20 MB, missing index.html/404.html, a link to /notes with no note published,
+// dist over 20 MB, missing index.html/404.html, a link to /notes or its feed with no note published,
 // or home-page JS over 30 KB gzipped.
 import fs from "node:fs";
 import path from "node:path";
@@ -72,12 +72,15 @@ for (const id of draftIds) {
     errors.push(`draft "${id}" is in the build`);
 }
 
-// 5. No published notes: nothing may link to the empty /notes page (nav, status bar, 404, finder).
+// 5. No published notes: nothing may link to the empty /notes page (nav, status bar, 404, finder) or its feed.
 const noteDir = path.join(dir, "notes");
 const notePages = fs.existsSync(noteDir) ? fs.readdirSync(noteDir).filter((x) => x.endsWith(".html")) : [];
 if (notePages.length === 0) {
-  for (const f of files.filter((x) => /\.(html|json)$/.test(x))) {
-    if (/"\/notes"/.test(fs.readFileSync(f, "utf8"))) errors.push(`${rel(f)}: links to /notes, but no note is published`);
+  for (const f of files.filter((x) => /\.(html|json|xml)$/.test(x))) {
+    const text = fs.readFileSync(f, "utf8");
+    if (/"\/notes"/.test(text)) errors.push(`${rel(f)}: links to /notes, but no note is published`);
+    if (/<loc>[^<]*\/notes<\/loc>/.test(text)) errors.push(`${rel(f)}: the sitemap lists /notes, but no note is published`);
+    if (/application\/rss\+xml/.test(text)) errors.push(`${rel(f)}: offers the notes RSS feed, but no note is published`);
   }
 }
 
