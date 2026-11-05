@@ -3,23 +3,21 @@ name: ServiceBox
 year: 2025
 period: Sep 2025–present
 tags: [typescript, fastapi, postgresql, react]
-summary: Racket customization PWA on Rod Cross's swing-weight equations, with the physics in its own FastAPI service.
-repo: https://github.com/kylezehaoqin/servicebox
+summary: Racket customization app with live swing weight, twist weight, and balance, backed by a separate Python physics service.
 featured: true
 order: 1
 ---
-A racket customization PWA with 3 tools: Spec Forecaster, Matching Planner, and Selection Helper. The math comes from Rod Cross's peer-reviewed swing-weight equations.
 
-The app is TypeScript and tRPC, and the numeric work lives in its own FastAPI + NumPy/SciPy service. PostgreSQL on Supabase with row-level security, Redis + BullMQ for background jobs, and a React 19 PWA, shipped with Docker Compose and GitHub Actions.
+A racket customization app for tennis players and stringers. The goal is a much simpler interface than existing spec calculators, on a tested physics model.
 
-## Splitting the service
+The studio holds one racket's setup changes and lead placements in one list, with keyboard and touch editing, and updates swing weight, twist weight, and balance live. Collections hold racket groups with their specs and change history. The selection helper finds rackets to buy that reach a target spec with the least customization.
 
-The physics is CPU-bound. Running it in a separate Python service keeps Node's event loop free for I/O, and each side scales on its own. API responses stay under 10ms end to end.
+It is a TypeScript monorepo: a React 19 PWA, a Fastify and tRPC API, and Zod schemas shared by both sides. Data is in Supabase PostgreSQL. The numeric work runs in a separate Python service on FastAPI, NumPy, and SciPy.
 
-## tRPC over REST and GraphQL
+## Set matching
 
-Frontend and backend ship together in one TypeScript monorepo. End-to-end type safety was worth more than client-side query flexibility.
+The set matcher brings 2 to 20 rackets to one spec. A linear program picks the lightest shared target that every frame can reach, and an integer program per frame places tape strips at 6 positions. Each plan is checked again with the forward physics model, and plans that miss are dropped. All 200 simulated batches of 8 to 12 frames matched, in about 0.3 s each.
 
-## Supabase Auth over Auth0, Clerk, or custom JWT
+## Next
 
-No added cost on the PostgreSQL I already had, native row-level security (16 policies), no vendor lock-in, and about half the build time of custom JWT.
+Merge the set matcher into the app and test it on measured frames.

@@ -3,17 +3,20 @@ name: Tie
 year: 2023
 period: Feb–May 2023
 role: Technical Product Manager, 5-person team
-tags: [neo4j, graphql, react, docker]
-summary: Industry capstone for Jahnel Group. A two-way recommender that matches 40+ candidates with 10+ projects.
+tags: [neo4j, graphql, react, aws]
+summary: "Industry capstone for Jahnel Group: a reciprocal recommender on a Neo4j knowledge graph that ranks applicants and projects for each other."
 ---
-An industry capstone for Jahnel Group Inc. I led a 5-person team (1 TPM, 1 product owner, 2 developers, 1 QA) as the Technical Product Manager.
 
-We built a two-way recommender that matches 40+ candidates with 10+ projects. Neo4j underneath, a GraphQL/Apollo API in front, React and Node.js, on Docker and AWS.
+An industry capstone for Jahnel Group, a software consultancy in Schenectady, NY. I was the Technical Product Manager on a 5-person team.
 
-## Two signals
+Tie is a reciprocal recommender for staffing. Applicants upload a resume, and hiring managers see the ranked applicants for each project with a match score and their main skills. The client accepted the system, with 40+ applicants and 10+ projects.
 
-The recommender mixes Cypher graph traversals (the collaborative signal) with embedding similarity (the content signal).
+The interface is React with Apollo Client, and the API is GraphQL on Apollo Server and Node.js. On AWS, resumes land in S3, and a Lambda function extracts their text with Textract for skill mining. Neo4j stores applicants, projects, and skills as one graph, which makes each recommendation explainable.
 
-## Onboarding
+## Recommendations
 
-Containerized microservices behind an API gateway saved 40+ hours of individual setup and integration debugging. That's about 2 weeks of onboarding.
+The recommender is hybrid: it combines Cypher graph traversals with embedding similarity. I modeled the skill hierarchy of each applicant and project as an n-ary tree for link prediction.
+
+## Development environment
+
+The services run in containers behind an API gateway, with a CI/CD pipeline. The shared environment saved about 2 weeks of team onboarding.

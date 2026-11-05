@@ -1,27 +1,18 @@
 ---
 name: XHS Knowledge Reader
 year: 2026
-period: Apr 2026–present
+period: Apr–Jul 2026
 tags: [python, fastapi, sqlite, paddleocr]
 summary: Makes saved Xiaohongshu posts searchable. OCR plus a full-text index over 700+ posts.
 order: 3
 ---
-A local reader that makes saved Xiaohongshu posts searchable. A lot of the text in those posts sits inside images, so OCR pulls it out into a SQLite FTS5 (trigram) index over 700+ posts. FastAPI serves it, with a D3 graph and a list reader on top.
 
-It has request metrics, structured JSON logs, a `/dashboard` page, and a benchmark CLI (p50/p95/p99). Every decision is written down as an ADR. The repo isn't public yet.
+A local search tool for saved Xiaohongshu posts. Most of their text is inside images, so PaddleOCR extracts it into a SQLite FTS5 trigram index over 700+ posts. A FastAPI service serves the index to a D3 graph view and a list reader, with request metrics, structured logs, and a benchmark CLI for p50, p95, and p99 latency. Each design decision is recorded as an ADR.
 
-Next (designed, not built): hybrid keyword + embedding retrieval with cited LLM answers, measured by recall@k on a labeled question set.
+## Concurrency
 
-## A silent failure
+The API and a background OCR worker share one SQLite database in WAL mode, with a single serialized write path. OCR progress streams to the browser over server-sent events.
 
-After a PaddleOCR 3.x API change, OCR results got stored as null. No error anywhere, because a bare `except` swallowed it. I fixed the call and cleared the poisoned cache.
+## Next
 
-## A 12GB memory spike
-
-Re-queuing every post after that fix pushed memory to 12GB with the server-grade OCR model. I switched to the mobile model and made bulk OCR opt-in. It sits around 200MB at rest now.
-
-## SQLite WAL
-
-The API handlers and the background OCR worker both wrote to the database and hit `SQLITE_BUSY`. I went with WAL mode and one serialized write path instead of connection pooling.
-
-OCR progress streams over server-sent events, since updates only go one way and the browser reconnects on its own.
+Designed, not built: hybrid keyword and embedding retrieval with cited LLM answers, evaluated by recall@k on a labeled question set.

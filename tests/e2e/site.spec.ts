@@ -624,8 +624,8 @@ test.describe("page keys", () => {
     await page.goto("/projects/deuce");
     await page.keyboard.press("z"); await page.keyboard.press("M");
     await expect(page.locator(".fold:not(.folded)")).toHaveCount(0);
-    await page.evaluate(() => { location.hash = "#measuring-indexes"; });
-    const sec = page.locator(".fold", { has: page.locator("#measuring-indexes") });
+    await page.evaluate(() => { location.hash = "#indexes"; });
+    const sec = page.locator(".fold", { has: page.locator("#indexes") });
     await expect(sec).not.toHaveClass(/folded/);
     await expect(sec.locator("p").first()).toBeVisible();
   });

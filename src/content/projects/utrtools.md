@@ -2,21 +2,21 @@
 name: UTRTools
 year: 2025
 period: Sep 2025–present
+role: Lead contributor, team project
 tags: [python, rest apis]
-summary: Scouting for my tennis league team. Match history and UTR (Universal Tennis Rating) lookups for about 200 players across 10 teams.
+summary: "Lineup scouting for my USTA league team's captains: opponents' ratings, past lineups, and doubles pairs for about 200 players a season."
 featured: true
 order: 2
 ---
-Scouting for my tennis league team. It automates the research captains do by hand for about 200 players across 10 teams a season: match history, opponent scouting, and UTR rating lookups across USTA and UTR.
 
-4 of us on the team use it.
+A lineup-scouting tool for my USTA league team's captains. Before a match, it summarizes the opposing team from USTA, UTR, and TennisRecord data. In playoffs, it also shows each opponent's past lineups by position, stacking tendencies, and most frequent doubles pairs. It covers about 200 players across 10 teams a season.
 
-## Identity matching
+It is a Python command-line tool built with teammates. I am the lead contributor (86 of 128 commits) and ship changes through pull requests.
 
-Name matching broke on players who moved regions, or who used totally different names on the 2 platforms.
+## Player identity
 
-Now a UTR profile needs evidence: the player's own USTA matches (same date, same set scores) have to show up in its results. Unclear cases go to a person, not a guess.
+Common names map to several UTR profiles. The matcher accepts a profile only when the player's own USTA matches, with the same dates and set scores, appear in its results, and it sends unclear cases to manual review. It scores 12 of 12 on a golden set of players with known UTR ids.
 
-## Never record a failure as "not found"
+## API client and tests
 
-Every API call goes through one client with pacing, retries, a circuit breaker, and request budgets. So an incomplete lookup never gets saved as "player not found".
+All requests go through one client with pacing, retries, a circuit breaker, and request budgets, so a failed lookup is never saved as "not found". I used mutation testing (876 mutants) to find and close gaps in the test suite.

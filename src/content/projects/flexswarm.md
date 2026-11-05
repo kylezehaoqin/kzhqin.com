@@ -4,9 +4,14 @@ year: 2022
 period: Oct–Dec 2022
 role: AI & Blockchain @ RPI
 tags: [react, python, algorand]
-summary: Decentralized ensemble ML platform on Algorand, with a Proof of Quality consensus idea.
+summary: Decentralized ensemble learning on Algorand, with research into a Proof of Quality consensus mechanism.
 order: 1
 ---
-A decentralized ensemble ML platform, from AI & Blockchain @ RPI.
 
-My parts: the ensemble evaluation process, the React UI, and research on a Proof of Quality consensus mechanism with differential privacy.
+A decentralized ensemble learning platform on Algorand that allows flexible training, built for AI & Blockchain at RPI.
+
+My contributions:
+
+- Developed the ensemble evaluation process that completes the training workflow.
+- Implemented the React UI and its Flask endpoints, with unit and integration tests.
+- Researched a Proof of Quality consensus mechanism with differential privacy.

@@ -50,7 +50,7 @@ Structure and content model: `README.md` (how to write a note) and `docs/design/
 
 - Never SSH as `deploy`, and never edit files on the VPS by hand. Server changes go through `~/dev/vps` and `./bootstrap.sh`, which Kyle runs (it needs his sudo password).
 - Never put secrets, the phone number, or private notes in a published file.
-- Never invent facts in site copy. Facts come from `~/dev/opensource-projects/career-ops/cv.md`. Copy is in Kyle's voice: `~/dev/opensource-projects/career-ops/voice-dna.md` (no em dashes, contractions, no banned words).
+- Never invent facts in site copy. Facts come from `~/dev/opensource-projects/career-ops/cv.md`. Copy is in Kyle's voice: `~/dev/opensource-projects/career-ops/voice-dna.md`. Site copy uses its section 6, "Technical register" (exact, measured, system first, then parts, then reasons and next steps). No em dashes, no banned words.
 
 ## Shell pitfalls on this Mac (from LESSONS.md)
 
