@@ -26,10 +26,10 @@
   --sl-tab: #3a3f5c;
   --sl-ink: #1f2130;
   --sl-green: #6ee7a0;
-  --sl-pink: #ff92cf;
   --sl-blue: #9ab8ff;
   --sl-orange: #ffb877;
   --sl-purple: #c3a6ff;
+  --sl-acc: #ff7a45; /* ember on the bar: the bar is dark in both themes, so it takes the night ember (5.8:1 with --sl-ink) */
 
   --font-display: "Nunito", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
   --font-body: "Geist Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -58,7 +58,7 @@
 }
 
 /* Signal (cyan) accent, chosen with ":accent signal". */
-:root[data-accent="signal"] { --acc: #0e8fb8; --acc-2: #1f9c86; --acc-text: #0b7193; --acc-tint: rgba(14, 143, 184, 0.09); --acc-glow: rgba(14, 143, 184, 0.4); }
+:root[data-accent="signal"] { --sl-acc: #7fd6ff; --acc: #0e8fb8; --acc-2: #1f9c86; --acc-text: #0b7193; --acc-tint: rgba(14, 143, 184, 0.09); --acc-glow: rgba(14, 143, 184, 0.4); }
 @media (prefers-color-scheme: dark) {
   :root[data-accent="signal"]:not([data-theme="light"]) { --acc: #7fd6ff; --acc-2: #b6f0d9; --acc-text: #7fd6ff; --acc-tint: rgba(127, 214, 255, 0.1); --acc-glow: rgba(127, 214, 255, 0.5); }
 }

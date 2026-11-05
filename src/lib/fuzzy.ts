@@ -37,3 +37,27 @@ export function rank<T>(items: T[], key: (item: T) => string, query: string) {
     .sort((a, b) => b.match.score - a.match.score) // stable: ties keep input order
     .map(({ item, match }) => ({ item, score: match.score, hits: match.hits }));
 }
+
+export interface Searchable {
+  name: string;
+  text?: string; // summary
+  meta?: string; // year and tags
+  alias?: string; // a short command name: "t" for theme, so ":t" runs it
+}
+
+/** The finder's ranking. An exact alias comes first, then fuzzy name matches, then
+ *  items whose summary or tags contain the query (2+ letters, so one letter does not
+ *  match every summary). "sql" finds Deuce by its summary, below any name match. */
+export function search<T extends Searchable>(items: T[], query: string) {
+  const q = query.trim().toLowerCase();
+  return items
+    .map((item) => {
+      if (q && item.alias === q) return { item, score: 1e6, hits: [] as number[] };
+      const m = score(item.name, q);
+      if (m) return { item, score: 1e3 + m.score, hits: m.hits };
+      if (q.length >= 2 && `${item.text ?? ""} ${item.meta ?? ""}`.toLowerCase().includes(q)) return { item, score: 0, hits: [] as number[] };
+      return null;
+    })
+    .filter((r) => r !== null)
+    .sort((a, b) => b.score - a.score); // stable: ties keep input order
+}

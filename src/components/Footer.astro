@@ -4,6 +4,6 @@ const sha = (import.meta.env.PUBLIC_SHA ?? "").slice(0, 7) || "local";
 const year = new Date().getFullYear();
 ---
 <footer class="foot">
-  <span>© {year} Kyle Qin · <span class="mail">{EMAIL}</span></span>
+  <span>© {year} Kyle Qin · <a class="mail" href={`mailto:${EMAIL}`}>{EMAIL}</a></span>
   <span>deployed <code>{sha}</code><span class="kbd-hint"> · try <kbd>:</kbd></span></span>
 </footer>

@@ -14,6 +14,7 @@ import Footer from "../components/Footer.astro";
 import StatusBar from "../components/StatusBar.astro";
 import Finder from "../components/Finder.astro";
 import WhichKey from "../components/WhichKey.astro";
+import { hasNotes } from "../lib/content";
 
 interface Props {
   title?: string;
@@ -26,7 +27,7 @@ interface Props {
 }
 const {
   title,
-  description = "Kyle Qin, full-stack developer in San Jose. I build apps for data-heavy problems, end to end.",
+  description = "Kyle Qin, software engineer in the Bay Area. I've shipped production apps for education and e-commerce clients.",
   current,
   slug,
   type = "website",
@@ -53,7 +54,7 @@ const canonical = current === "404" ? null : new URL(cleanPath, Astro.site);
     {canonical ? <link rel="canonical" href={canonical} /> : <meta name="robots" content="noindex" />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="alternate" type="application/rss+xml" title="Kyle Qin: notes" href="/rss.xml" />
+    {(await hasNotes()) && <link rel="alternate" type="application/rss+xml" title="Kyle Qin: notes" href="/rss.xml" />}
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="color-scheme" content="light dark" />
     <meta property="og:type" content={type} />
@@ -63,15 +64,16 @@ const canonical = current === "404" ? null : new URL(cleanPath, Astro.site);
     <meta property="og:image" content={new URL("/og.png", Astro.site)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Kyle Qin: I build full-stack apps for data-heavy problems." />
+    <meta property="og:image:alt" content="Kyle Qin: I'm a software engineer." />
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
-      // Apply a saved theme and accent before first paint, so there is no flash.
+      // Apply a saved theme, accent, and key state (status-bar colors) before first paint, so there is no flash.
       try {
         var t = localStorage.getItem("theme"), a = localStorage.getItem("accent");
         if (t === "paper") document.documentElement.dataset.theme = "light";
         if (t === "night") document.documentElement.dataset.theme = "dark";
         if (a === "signal") document.documentElement.dataset.accent = "signal";
+        if (localStorage.getItem("keys-armed") === "1") document.documentElement.dataset.keys = "armed";
       } catch (e) {}
     </script>
   </head>
@@ -89,6 +91,7 @@ const canonical = current === "404" ? null : new URL(cleanPath, Astro.site);
     <Finder />
     <WhichKey />
     <div class="notify" id="msg" role="status" aria-live="polite"></div>
+    <div class="sr-only" id="sel-msg" aria-live="polite"></div>
     <script>
       import "../scripts/site.ts";
     </script>

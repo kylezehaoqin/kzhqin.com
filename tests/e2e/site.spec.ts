@@ -32,12 +32,29 @@ test.describe("pages", () => {
     });
   }
 
-  test("home shows hero, projects, notes, and about", async ({ page }) => {
+  test("home shows hero, stack, experience, projects, and notes", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Hi, I'm Kyle. I build full-stack apps");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Hi, I'm Kyle. I'm a software engineer.");
     await expect(page.locator(".rows .row")).toHaveCount(4);
+    await expect(page.locator("#h-xp")).toHaveText("experience");
+    await expect(page.locator(".sec .xp li")).toHaveCount(3);
     await expect(page.locator(".list .nrow")).toHaveCount(2);
-    await expect(page.getByText("Read more about me")).toBeVisible();
+    await expect(page.locator("#h-stack")).toBeVisible();
+    // Kyle's order: what I use and where I worked, then the projects.
+    const order = await page.locator("main h2").allTextContents();
+    expect(order.slice(0, 3)).toEqual(["stack", "experience", "projects"]);
+  });
+
+  test("the footer email is a mailto: link; a project page puts its title before the meta line", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("footer a.mail")).toHaveAttribute("href", "mailto:kylezh.qin@gmail.com");
+    await page.goto("/projects/deuce");
+    expect(await page.locator(".post > header > *").first().evaluate((el) => el.tagName)).toBe("H1");
+  });
+
+  test("the page has one navigation landmark for pages (the status bar is not a second one)", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("navigation")).toHaveCount(1);
   });
 
   test("the email button copies the address", async ({ page, context }) => {
@@ -161,6 +178,56 @@ test.describe("finder and keys", () => {
     await expect(page.locator("#whichkey")).toBeVisible();
   });
 
+  test("before arming, stray h, 1-5, H, L, and t do nothing", async ({ page }) => {
+    await page.goto("/projects");
+    const theme = await page.evaluate(() => document.documentElement.dataset.theme ?? "");
+    for (const key of ["h", "2", "L", "Shift+H", "t"]) await page.keyboard.press(key);
+    await expect(page).toHaveURL(/\/projects$/);
+    expect(await page.evaluate(() => document.documentElement.dataset.theme ?? "")).toBe(theme);
+  });
+
+  test(":t switches the theme; t alone never does, even armed", async ({ page }) => {
+    await page.goto("/");
+    await armLeader(page);
+    const before = await page.evaluate(() => document.documentElement.dataset.theme ?? "");
+    await page.keyboard.press("t");
+    expect(await page.evaluate(() => document.documentElement.dataset.theme ?? "")).toBe(before);
+    await page.keyboard.press(":");
+    await page.keyboard.type("t");
+    await expect(page.locator("#finder-results li.on .nm")).toHaveText("theme");
+    await page.keyboard.press("Enter");
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme ?? "")).not.toBe(before);
+  });
+
+  test("the finder matches summaries and tags, and a miss offers the project list", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press(":");
+    await page.keyboard.type("sql");
+    await expect(page.locator("#finder-results li .nm", { hasText: "Deuce" })).toBeVisible();
+    await page.locator("#finder-q").fill("zzqx");
+    const none = page.locator("#finder-results li.none");
+    await expect(none).toContainText('no match for "zzqx"');
+    await expect(none.getByRole("link", { name: "see all projects" })).toHaveAttribute("href", "/projects");
+  });
+
+  test("the status bar stays in the site palette until the keys are armed", async ({ page }) => {
+    await page.goto("/");
+    const bg = () => page.locator("#mode").evaluate((el) => getComputedStyle(el).backgroundColor);
+    await expect(page.locator(".sl")).not.toContainText("open to work");
+    expect(await bg()).toBe("rgb(255, 122, 69)"); // --sl-acc, the night ember
+    await armLeader(page);
+    await expect.poll(bg).toBe("rgb(110, 231, 160)"); // --sl-green: the full lualine colors
+    await page.reload();
+    expect(await bg()).toBe("rgb(110, 231, 160)"); // remembered, with no flash of the quiet bar
+  });
+
+  test("j tells a screen reader which row is selected", async ({ page }) => {
+    await page.goto("/projects");
+    const first = (await page.locator(".row .t").first().textContent())!.trim();
+    await page.keyboard.press("j");
+    await expect(page.locator("#sel-msg")).toHaveText(`${first}, 1 of 10`);
+  });
+
   test("Space presses a focused button, even with the leader armed", async ({ page }) => {
     await page.goto("/");
     await armLeader(page);
@@ -223,6 +290,7 @@ test.describe("finder and keys", () => {
 
   test("number keys and H/L switch buffers", async ({ page }) => {
     await page.goto("/");
+    await armLeader(page);
     await page.keyboard.press("3");
     await expect(page).toHaveURL(/\/notes$/);
     await page.keyboard.press("L");
@@ -400,6 +468,7 @@ test.describe("projects and skills", () => {
 
   test("h on a project page goes back to /projects", async ({ page }) => {
     await page.goto("/projects/deuce");
+    await armLeader(page);
     await page.keyboard.press("h");
     await expect(page).toHaveURL(/\/projects$/);
   });
@@ -523,7 +592,7 @@ test.describe("page keys", () => {
   test("]] on home jumps to the next section", async ({ page }) => {
     await page.goto("/");
     await page.keyboard.press("]"); await page.keyboard.press("]");
-    expect(await page.locator("#h-projects").evaluate((h) => h.getBoundingClientRect().top)).toBeLessThan(200);
+    expect(await page.locator("#h-stack").evaluate((h) => h.getBoundingClientRect().top)).toBeLessThan(200);
   });
 
   test("za folds the section at the top, zR unfolds all, zM folds all", async ({ page }) => {
@@ -666,6 +735,19 @@ test.describe("phone, motion, no-JS, accessibility", () => {
     });
   }
 
+  test("skill items never split, and the phone hero gives the email button its own row", async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const page = await ctx.newPage();
+    await page.goto("/about");
+    const split = await page.locator(".skills .items li").evaluateAll((els) => els.filter((e) => e.getClientRects().length !== 1).map((e) => e.textContent));
+    expect(split).toEqual([]);
+    await page.goto("/");
+    const { email, row } = await page.locator(".hero .links").evaluate((el) => ({
+      email: el.querySelector(".email")!.getBoundingClientRect().width, row: el.getBoundingClientRect().width }));
+    expect(Math.abs(email - row)).toBeLessThan(1);
+    await ctx.close();
+  });
+
   test("a touch phone gets no status bar, no key hint, and 44px targets", async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
     const page = await ctx.newPage();
@@ -674,7 +756,7 @@ test.describe("phone, motion, no-JS, accessibility", () => {
       expect(await page.evaluate(() => matchMedia("(hover: none) and (pointer: coarse)").matches)).toBe(true);
       await expect(page.locator(".sl")).toBeHidden();
       await expect(page.locator("footer .kbd-hint")).toBeHidden();
-      const small = await page.locator(".nav a, .icon-btn, main .btn, .sec-h a, .back, .about-strip a").evaluateAll((els) =>
+      const small = await page.locator(".nav a, .icon-btn, main .btn, .sec-h a, .back, footer .mail").evaluateAll((els) =>
         els.filter((e) => e.getClientRects().length > 0 && e.getBoundingClientRect().height < 44).map((e) => e.textContent?.trim()));
       expect(small, url).toEqual([]);
     }

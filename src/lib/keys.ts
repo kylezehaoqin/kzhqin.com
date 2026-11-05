@@ -9,7 +9,7 @@ export type Action =
   | { type: "down" } | { type: "up" } | { type: "top" } | { type: "bottom" }
   | { type: "open" } | { type: "back" }
   | { type: "prevBuffer" } | { type: "nextBuffer" } | { type: "buffer"; n: number }
-  | { type: "theme" } | { type: "find" } | { type: "help" }
+  | { type: "find" } | { type: "help" }
   | { type: "leader" } | { type: "leaderGroup"; group: Group } | { type: "go"; page: Page } | { type: "escape" }
   | { type: "external" } | { type: "section"; by: 1 | -1 } | { type: "hover" } | { type: "yank" }
   | { type: "fold" } | { type: "foldAll" } | { type: "unfoldAll" } | { type: "source" } | { type: "zen" };
@@ -34,7 +34,6 @@ const SINGLE: Record<string, Action> = {
   H: { type: "prevBuffer" },
   L: { type: "nextBuffer" },
   K: { type: "hover" },
-  t: { type: "theme" },
   ":": { type: "find" },
   "/": { type: "find" },
   "?": { type: "help" },
@@ -62,7 +61,6 @@ export const LEADER_KEYS: Record<string, Entry> = {
   n: { label: "notes", action: { type: "go", page: "notes" } },
   a: { label: "about", action: { type: "go", page: "about" } },
   h: { label: "home", action: { type: "go", page: "home" } },
-  t: { label: "toggle theme", action: { type: "theme" } },
   g: { label: "+git", action: { type: "leaderGroup", group: "g" } },
   u: { label: "+ui", action: { type: "leaderGroup", group: "u" } },
   "?": { label: "all keys", action: { type: "help" } },
@@ -73,8 +71,13 @@ export const LEADER_GROUPS: Record<Group, Record<string, Entry>> = {
   u: { z: { label: "zen mode", action: { type: "zen" } } },
 };
 
-/** leaderArmed: until it returns true, Space is not the leader and the browser scrolls the page. */
-export function createKeymap({ leaderArmed = () => true }: { leaderArmed?: () => boolean } = {}) {
+// Keys that leave the page (or, for Space, take the browser's page-down). Until the
+// visitor arms the keys, they do nothing, so a stray press never moves anyone. The
+// rest only move a highlight or open a panel, and they work at once.
+const ARMED_ONLY = new Set([" ", "h", "H", "L", "1", "2", "3", "4", "5"]);
+
+/** armed: until it returns true, the ARMED_ONLY keys return null (Space then scrolls the page). */
+export function createKeymap({ armed = () => true }: { armed?: () => boolean } = {}) {
   let pending = "";
   let mode: Mode = "NORMAL";
   let group: Group | "" = "";
@@ -118,8 +121,8 @@ export function createKeymap({ leaderArmed = () => true }: { leaderArmed?: () =>
       return null;
     }
 
+    if (ARMED_ONLY.has(e.key) && !armed()) return null;
     if (e.key === " ") {
-      if (!leaderArmed()) return null;
       mode = "LEADER";
       return { type: "leader" };
     }

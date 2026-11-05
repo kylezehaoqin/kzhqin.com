@@ -4,6 +4,7 @@ import ProjectRow from "../components/ProjectRow.astro";
 import NoteRow from "../components/NoteRow.astro";
 import Skills from "../components/Skills.astro";
 import Contact from "../components/Contact.astro";
+import Experience from "../components/Experience.astro";
 import { getNotes, getProjects } from "../lib/content";
 
 const all = await getProjects();
@@ -13,10 +14,20 @@ const notes = (await getNotes()).slice(0, 3);
 <Base current="home">
   <main id="main">
     <section class="hero">
-      <span class="status"><i aria-hidden="true"></i>Open to full-stack roles · <span class="nw">San Jose, CA</span></span>
-      <h1>Hi, I'm Kyle.{" "}<span class="grad">I build full-stack apps for <span class="nw">data-heavy</span> problems.</span></h1>
-      <p>I work end to end, from the database schema to the CI/CD infra. Lately that's been side projects: a tennis analytics text to SQL agent, a plant ID trainer for a botany exam, and a physics tool for racket nerds (I'm one of them).</p>
+      <span class="status"><i aria-hidden="true"></i>Open to software roles · <span class="nw">Bay Area</span></span>
+      <h1>Hi, I'm Kyle.{" "}<span class="grad">I'm a software engineer.</span></h1>
+      <p>I've shipped production apps for education and e-commerce clients. Lately I'm building <a href="/projects/deuce">Deuce</a>, an analytics pipeline over 1.9M shot-by-shot tennis points.</p>
       <Contact />
+    </section>
+
+    <section class="sec" aria-labelledby="h-stack">
+      <div class="sec-h"><h2 id="h-stack">stack</h2><a href="/about#stack">full list →</a></div>
+      <Skills compact />
+    </section>
+
+    <section class="sec" aria-labelledby="h-xp">
+      <div class="sec-h"><h2 id="h-xp">experience</h2><a href="/about">about me →</a></div>
+      <Experience />
     </section>
 
     <section class="sec" aria-labelledby="h-projects">
@@ -30,18 +41,5 @@ const notes = (await getNotes()).slice(0, 3);
         <ul class="list">{notes.map((n) => <NoteRow note={n} />)}</ul>
       </section>
     )}
-
-    <section class="sec" aria-labelledby="h-stack">
-      <div class="sec-h"><h2 id="h-stack">stack</h2><a href="/about#stack">full list →</a></div>
-      <Skills compact />
-    </section>
-
-    <section class="sec" aria-labelledby="h-about">
-      <div class="sec-h"><h2 id="h-about">about</h2></div>
-      <div class="about-strip">
-        <p>Full-stack developer in San Jose. I studied computer science and web science at RPI, then built and ran production apps as a contractor for education and e-commerce clients.</p>
-        <a class="nav-item" href="/about">Read more about me</a>
-      </div>
-    </section>
   </main>
 </Base>

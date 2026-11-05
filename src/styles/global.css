@@ -69,13 +69,20 @@ main.page { gap: 28px; }
 .hero { display: grid; gap: 18px; }
 .hero h1 { margin: 0; font: 800 clamp(32px, 6vw, 44px)/1.12 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
 .grad { background: linear-gradient(100deg, var(--acc) 10%, var(--acc-2) 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.hero p { margin: 0; color: var(--muted); font-size: 16.5px; max-width: var(--measure); }
+.hero p { margin: 0; color: color-mix(in srgb, var(--fg) 82%, var(--bg)); font-size: 16.5px; max-width: var(--measure); }
+.hero p a { color: var(--acc-text); text-underline-offset: 3px; }
 .links { display: flex; flex-wrap: wrap; gap: 8px; }
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 10px; font-size: 14px; text-decoration: none; border: 1px solid var(--line); background: var(--surface); transition: border-color .2s, transform .15s, background .2s; }
 .btn:hover { border-color: var(--acc); background: var(--acc-tint); transform: translateY(-1px); }
 .btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .btn.primary:hover { background: var(--fg); filter: brightness(1.15); }
 .btn.sel { outline: 2px solid var(--acc); outline-offset: 3px; }
+/* Phones: the short buttons share the first row, and the long email button takes a full
+   row of its own instead of wrapping alone at its natural width. */
+@media (max-width: 520px) {
+  .links:has(> .email) .btn { flex: 1 1 auto; justify-content: center; }
+  .links .email { flex-basis: 100%; }
+}
 .btn svg { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; flex: none; }
 /* Email button: "copied" sits over the address, so the button keeps its width. */
 .btn.email { position: relative; font: 13px var(--font-mono); }
@@ -101,7 +108,7 @@ main.page { gap: 28px; }
 .rows, .list { list-style: none; margin: 0; padding: 0; }
 .rows li, .list li { border-top: 1px solid var(--line); }
 .rows li:last-child, .list li:last-child { border-bottom: 1px solid var(--line); }
-.row { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; column-gap: 20px; row-gap: 4px; align-items: baseline; padding: 16px 0; text-decoration: none; transition: padding .2s; }
+.row { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; column-gap: 20px; row-gap: 4px; align-items: baseline; padding: 16px 0; text-decoration: none; transition: padding .2s; }
 .row:hover, .row.sel { padding-left: 8px; }
 .row .yr { font: 13px var(--font-mono); color: var(--faint); font-variant-numeric: tabular-nums; }
 .row .t { margin: 0; font: 800 18px var(--font-display); letter-spacing: -0.005em; transition: color .15s; }
@@ -128,15 +135,16 @@ main.page { gap: 28px; }
 .chip.ghost { color: var(--muted); background: var(--soft); }
 .chip.draft { color: var(--faint); background: transparent; border: 1px dashed var(--line); }
 
-/* ---------- about ---------- */
-.about-strip { display: grid; gap: 8px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
-.about-strip p { margin: 0; color: var(--muted); }
-.about-strip a { color: var(--acc-text); font-size: 14px; text-underline-offset: 3px; justify-self: start; }
-.about-strip a.sel { outline: 2px solid var(--acc); outline-offset: 3px; border-radius: 4px; }
+/* ---------- stack and experience ---------- */
 .skills { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .skills .dom { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .skills h3 { margin: 0; font: 800 16px var(--font-display); }
-.skills .items { margin: 0; font: 13.5px/1.6 var(--font-mono); color: var(--fg); }
+/* One <li> per item, never split. Each item has its dot in front; the list is pulled
+   left by one dot's width and clipped there, so the dot that would start a line is
+   hidden and no line starts or ends on a stray separator. */
+.skills .items { display: flex; flex-wrap: wrap; gap: 0; list-style: none; margin: 0 0 0 -1.4em; padding: 0; clip-path: inset(0 0 0 1.4em); font: 13.5px/1.6 var(--font-mono); color: var(--fg); }
+.skills .items li { white-space: nowrap; }
+.skills .items li::before { content: "·" / ""; display: inline-block; width: 1.4em; text-align: center; color: var(--faint); }
 .skills .proof { margin: 0; font-size: 13.5px; color: var(--faint); }
 .skills .proof a { color: var(--acc-text); text-underline-offset: 3px; }
 .prose .skills { padding-left: 0; }
@@ -155,7 +163,8 @@ main.page { gap: 28px; }
 
 /* ---------- footer ---------- */
 footer.foot { border-top: 1px solid var(--line); padding-block: 22px 28px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; font: 12.5px var(--font-mono); color: var(--faint); }
-footer.foot .mail { color: var(--fg); user-select: all; }
+footer.foot .mail { color: var(--fg); text-underline-offset: 3px; text-decoration-color: var(--line); }
+footer.foot .mail:hover { color: var(--acc-text); text-decoration-color: currentColor; }
 footer.foot code { color: var(--muted); font: inherit; }
 footer.foot kbd { font: 11px var(--font-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; background: var(--surface); color: var(--muted); }
 
@@ -234,10 +243,13 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 .buf[aria-current="page"]::after { content: "*"; }
 .sl .grow { flex: 1; }
 .sl .pend { color: var(--sl-orange); padding: 0 10px; }
-.sl .pink { background: var(--sl-pink); }
 .sl .blue { background: var(--sl-blue); }
 .sl .orange { background: var(--sl-orange); }
 @media (max-width: 640px) { .sl .hide-sm { display: none; } }
+/* Until the visitor arms the keys (site.ts sets data-keys), the bar keeps to the site's own
+   palette: an ember mode pill and plain text. The lualine colors arrive with the keys. */
+:root:not([data-keys]) .mode { background: var(--sl-acc); }
+:root:not([data-keys]) .sl .pr { background: none; color: var(--sl-dim); font-weight: 500; clip-path: none; }
 
 /* ---------- finder (Telescope) + which-key ---------- */
 .overlay { position: fixed; inset: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 55%, transparent); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
@@ -266,6 +278,7 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 .results li.on .ic { color: var(--acc-text); }
 .results li.on .kd { color: var(--muted); } /* --faint is under 4.5:1 on the accent tint */
 .results li.none { grid-template-columns: 1fr; color: var(--faint); cursor: default; }
+.results li.none a { color: var(--acc-text); text-underline-offset: 3px; }
 .preview { padding: 14px 16px; display: grid; gap: 8px; align-content: start; font-family: var(--font-body); }
 .preview h4 { margin: 0; font: 800 18px var(--font-display); color: var(--fg); }
 .preview p { margin: 0; color: var(--muted); font-size: 14px; }
@@ -300,13 +313,13 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
   .brand, .nav ul a, .icon-btn { display: flex; align-items: center; min-height: 44px; }
   .icon-btn { justify-content: center; min-width: 44px; }
   .btn { min-height: 44px; }
-  .sec-h a, .back, .about-strip a { padding-block: 14px; margin-block: -14px; }
+  .sec-h a, .back, footer.foot .mail { padding-block: 14px; margin-block: -14px; }
   .skills .proof a { padding-block: 12px; }
 }
 
 /* Folds (za zM zR): the script wraps each .prose h2 and what follows it. */
 .prose > .fold { display: grid; gap: 16px; max-width: none; }
-.fold > * { margin: 0; max-width: 65ch; }
+.fold > * { margin: 0; } /* the .prose measure rules size the text inside */
 .fold.folded > :not(h2) { display: none; }
 .fold.folded > h2::after { content: " ▸ …"; color: var(--faint); font-weight: 500; }
 .fold-btn { all: unset; cursor: pointer; }

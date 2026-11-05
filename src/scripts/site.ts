@@ -1,7 +1,7 @@
 // Everything interactive on the site. Each part is optional: the pages are
 // complete HTML without this script. Pure logic lives in src/lib (unit-tested).
 import { createFinderKeys, inTab, TABS, type Tab } from "../lib/finderkeys";
-import { rank } from "../lib/fuzzy";
+import { search } from "../lib/fuzzy";
 import { createKeymap, LEADER_GROUPS, LEADER_KEYS, MODIFIER_KEYS, type Action, type Group, type Page } from "../lib/keys";
 import { scrollLabel } from "../lib/scrollpos";
 import type { SearchEntry } from "../lib/search";
@@ -163,9 +163,9 @@ document.querySelectorAll<HTMLAnchorElement>("a[data-copy]").forEach((a) => {
 });
 
 /* ---------------- finder (":" "/" or leader f) ---------------- */
-type Entry = SearchEntry & { run?: () => void };
+type Entry = SearchEntry & { alias?: string; run?: () => void };
 const COMMANDS: Entry[] = [
-  { kind: "command", name: "theme", text: "Switch between light and dark.", href: "", run: toggleTheme },
+  { kind: "command", name: "theme", alias: "t", text: "Switch between light and dark. Shortcut: :t", href: "", run: toggleTheme },
   { kind: "command", name: "accent ember", text: "Orange accent.", href: "", run: () => setAccent("ember") },
   { kind: "command", name: "accent signal", text: "Cyan accent.", href: "", run: () => setAccent("signal") },
   { kind: "command", name: "top", text: "Scroll to the top.", href: "", run: () => scrollTo(0, 0) },
@@ -176,7 +176,7 @@ const overlay = $("overlay"), picker = $("picker");
 const q = $<HTMLInputElement>("finder-q"), resultsEl = $("finder-results"), countEl = $("finder-count"), previewEl = $("finder-preview");
 let entries: Entry[] = COMMANDS;
 let loaded: Promise<void> | null = null;
-let shown: ReturnType<typeof rank<Entry>> = [];
+let shown: ReturnType<typeof search<Entry>> = [];
 let cur = 0;
 let returnFocus: Element | null = null;
 const fkeys = createFinderKeys();
@@ -211,7 +211,7 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 function renderResults() {
   if (!q || !resultsEl || !countEl || !previewEl) return;
   const pool = entries.filter((e) => inTab(e.kind, tab));
-  shown = rank(pool, (e) => e.name, q.value.trim());
+  shown = search(pool, q.value);
   cur = Math.min(cur, Math.max(0, shown.length - 1));
   countEl.textContent = `${shown.length}/${pool.length}`;
   resultsEl.innerHTML = shown.length
@@ -220,7 +220,9 @@ function renderResults() {
         const name = Array.from(r.item.name).map((ch, j) => (hits.has(j) ? `<mark>${esc(ch)}</mark>` : esc(ch))).join("");
         return `<li role="option" id="fr-${i}" data-i="${i}" class="${i === cur ? "on" : ""}" aria-selected="${i === cur}"><span class="ic">${ICON[r.item.kind] ?? "•"}</span><span class="nm">${name}</span><span class="kd">${esc(r.item.kind)}</span></li>`;
       }).join("")
-    : `<li class="none">${indexFailed ? "the search index did not load, so only commands are here. close and press : to try again" : "no match"}</li>`;
+    : `<li class="none">${indexFailed
+      ? "the search index did not load, so only commands are here. close and press : to try again"
+      : `no match for "${esc(q.value.trim())}". <a href="/projects">see all projects</a>`}</li>`;
   q.setAttribute("aria-activedescendant", shown.length ? `fr-${cur}` : "");
   const pick = shown[cur]?.item;
   previewEl.innerHTML = '<span class="title">Preview</span>' + (pick
@@ -286,7 +288,7 @@ const HELP: [string, string][] = [
   ["H L", "prev / next buffer"], ["1-5", "go to buffer"], [": /", "find anything"],
   ["gx", "open link"], ["]] [[", "next / prev section"], ["K", "hover card"], ["yy", "copy link"],
   ["za zM zR", "fold"], ["␣gB", "source on GitHub"], ["␣uz", "zen mode"],
-  ["␣", "leader menu"], ["t", "theme"], ["esc", "close / clear"],
+  ["␣", "leader menu"], [":t", "theme"], ["esc", "close / clear"],
 ];
 function openWhich(kind: "leader" | "help" | Group) {
   if (!wk || !wkGrid || !wkTitle || !wkFoot) return;
@@ -342,37 +344,41 @@ addEventListener("scroll", () => { if (!card.hidden && performance.now() - cardO
 addEventListener("click", closeCard);
 // Tab or a click moves focus away from the j/k selection: drop it, so Enter follows focus.
 addEventListener("focusin", (e) => { if (sel >= 0 && e.target !== items()[sel]) { sel = -1; paintSel(); } });
+const selMsg = $("sel-msg");
 function paintSel() {
   document.querySelectorAll(".sel").forEach((el) => el.classList.remove("sel"));
   const list = items();
   const el = list[sel];
   if (!el) return;
   el.classList.add("sel");
+  // Focus stays where it is, so a screen reader hears the selection from a live region.
+  const name = (el.querySelector(".t")?.childNodes[0]?.textContent ?? el.textContent ?? "").trim();
+  if (selMsg) selMsg.textContent = `${name}, ${sel + 1} of ${list.length}`;
   el.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
 }
 
-/* ---------------- Space: page-down until the visitor finds the keys ---------------- */
-// Space is the browser's page-down. A visitor who never heard of the easter egg must
-// get a scroll, not a menu. So the leader takes Space only after a visitor has used
-// the hidden keys on purpose. The keydown handler calls noteKeyUse with each action.
+/* ---------------- arming: the keys stay quiet until the visitor finds them ---------------- */
+// A visitor who never heard of the easter egg must get the browser's page-down on Space,
+// and a stray h or 1 must not leave the page. So those keys (ARMED_ONLY in keys.ts) wait
+// until the visitor uses the hidden keys on purpose. The keydown handler calls noteKeyUse.
 //
-// Policy (Kyle, 10-18): only the deliberate keys arm it (":" "/" "?"; the footer hint
-// teaches ":"), so a stray j or t never takes Space away. It is remembered, so a return
-// visitor who found the keys gets the leader at once.
+// Policy (Kyle, 10-18, widened 10-19): only the deliberate keys arm (":" "/" "?"; the footer
+// hint teaches ":"). It is remembered, so a return visitor gets every key at once. The
+// status bar shows the full lualine colors only when armed (data-keys, also set before
+// first paint in Base.astro).
 const ARMED = "keys-armed";
 let armed = store.get(ARMED) === "1";
+if (armed) root.dataset.keys = "armed";
 
 function noteKeyUse(a: Action) {
   if (armed || (a.type !== "find" && a.type !== "help")) return;
   armed = true;
+  root.dataset.keys = "armed";
   store.set(ARMED, "1");
-}
-function leaderArmed(): boolean {
-  return armed;
 }
 
 /* ---------------- the hidden keys ---------------- */
-const keymap = createKeymap({ leaderArmed });
+const keymap = createKeymap({ armed: () => armed });
 const bufferLinks = () => Array.from(document.querySelectorAll<HTMLAnchorElement>(".bufs .buf"));
 const PAGE_HREF: Record<Page, string> = { home: "/", projects: "/projects", notes: "/notes", about: "/about" };
 function perform(a: Action) {
@@ -393,7 +399,6 @@ function perform(a: Action) {
     }
     case "buffer": { const b = bufferLinks()[a.n - 1]; if (b) location.href = b.href; break; }
     case "go": location.href = PAGE_HREF[a.page]; break;
-    case "theme": toggleTheme(); break;
     case "find": openFinder(); break;
     case "help": if (wk?.hidden === false && wkTitle?.textContent === "keymaps") closeWhich(); else openWhich("help"); break;
     case "leader": openWhich("leader"); break;

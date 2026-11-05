@@ -16,7 +16,7 @@ describe("keymap", () => {
     expect(m.feed(k("h"))).toEqual({ type: "back" });
     expect(m.feed(k("H"))).toEqual({ type: "prevBuffer" });
     expect(m.feed(k("L"))).toEqual({ type: "nextBuffer" });
-    expect(m.feed(k("t"))).toEqual({ type: "theme" });
+    expect(m.feed(k("t"))).toBeNull(); // the theme is ":t" in the finder, never a single key
     expect(m.feed(k(":"))).toEqual({ type: "find" });
     expect(m.feed(k("/"))).toEqual({ type: "find" });
     expect(m.feed(k("?"))).toEqual({ type: "help" });
@@ -53,20 +53,34 @@ describe("keymap", () => {
     m.feed(k(" "));
     expect(m.feed(k("h"))).toEqual({ type: "go", page: "home" });
     m.feed(k(" "));
-    expect(m.feed(k("t"))).toEqual({ type: "theme" });
+    expect(m.feed(k("t"))).toEqual({ type: "escape" }); // no leader t: the theme is ":t"
     m.feed(k(" "));
     expect(m.feed(k("?"))).toEqual({ type: "help" });
   });
 
   it("leaves Space to the browser until the leader is armed", () => {
     let armed = false;
-    const m = createKeymap({ leaderArmed: () => armed });
+    const m = createKeymap({ armed: () => armed });
     expect(m.feed(k(" "))).toBeNull();
     expect(m.mode()).toBe("NORMAL");
     expect(m.feed(k("j"))).toEqual({ type: "down" }); // the other keys work as before
     armed = true;
     expect(m.feed(k(" "))).toEqual({ type: "leader" });
     expect(m.mode()).toBe("LEADER");
+  });
+
+  it("ignores the keys that leave the page until armed; highlight and panel keys work at once", () => {
+    let armed = false;
+    const m = createKeymap({ armed: () => armed });
+    for (const key of ["h", "H", "L", "1", "3", "5"]) expect(m.feed(k(key)), key).toBeNull();
+    m.feed(k("g"));
+    expect(m.feed(k("h"))).toBeNull(); // a broken g prefix does not let h through
+    expect(m.feed(k("j"))).toEqual({ type: "down" });
+    expect(m.feed(k("K"))).toEqual({ type: "hover" });
+    expect(m.feed(k("?"))).toEqual({ type: "help" });
+    armed = true;
+    expect(m.feed(k("h"))).toEqual({ type: "back" });
+    expect(m.feed(k("3"))).toEqual({ type: "buffer", n: 3 });
   });
 
   it("closes the leader menu on an unknown key", () => {

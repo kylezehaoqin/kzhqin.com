@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rank, score } from "../../src/lib/fuzzy";
+import { rank, score, search } from "../../src/lib/fuzzy";
 
 describe("score", () => {
   it("matches a subsequence and reports the matched indices", () => {
@@ -43,5 +43,39 @@ describe("rank", () => {
 
   it("keeps the original order for an empty query", () => {
     expect(rank(items, (s) => s, "").map((r) => r.item)).toEqual(items);
+  });
+});
+
+describe("search (the finder)", () => {
+  const items = [
+    { name: "Tie", text: "Two-way recommender.", meta: "2023 · react" },
+    { name: "Deuce", text: "Warehouse with a text-to-SQL agent.", meta: "2026 · python · postgresql" },
+    { name: "theme", text: "Switch between light and dark.", alias: "t" },
+  ];
+  const names = (q: string) => search(items, q).map((r) => r.item.name);
+
+  it("puts an exact alias first, so :t runs the theme command", () => {
+    expect(names("t")[0]).toBe("theme");
+    expect(names("T")[0]).toBe("theme");
+  });
+
+  it("finds an item by its summary or tags when the name does not match", () => {
+    expect(names("sql")).toEqual(["Deuce"]);
+    expect(names("python")).toEqual(["Deuce"]);
+  });
+
+  it("ranks any name match above a summary match", () => {
+    // "te": Tie and theme match by name (t…e); Deuce only by "text" in its summary.
+    const r = names("te");
+    expect(r).toHaveLength(3);
+    expect(r[2]).toBe("Deuce");
+  });
+
+  it("needs 2+ letters to match a summary", () => {
+    expect(names("q")).toEqual([]);
+  });
+
+  it("returns everything in input order for an empty query", () => {
+    expect(names("")).toEqual(["Tie", "Deuce", "theme"]);
   });
 });
