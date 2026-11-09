@@ -10,7 +10,7 @@ export const SKILLS: SkillDomain[] = [
   {
     domain: "Full-stack product",
     items: ["TypeScript", "React", "Next.js", "Node.js", "tRPC", "FastAPI", "PostgreSQL"],
-    proof: ["servicebox", "determination-drill"],
+    proof: ["swingsmith", "determination-drill"],
   },
   {
     domain: "Data engineering & analytics",
@@ -20,6 +20,6 @@ export const SKILLS: SkillDomain[] = [
   {
     domain: "Infra & delivery",
     items: ["Docker", "GitHub Actions", "Linux", "Nginx", "Cloudflare", "CI/CD"],
-    proof: ["servicebox", "tie"],
+    proof: ["swingsmith", "tie"],
   },
 ];
