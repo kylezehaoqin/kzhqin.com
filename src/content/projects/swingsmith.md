@@ -6,6 +6,7 @@ tags: [typescript, react, trpc, postgresql]
 summary: A racket customization app with visual lead editing, live specs, saved history, and set matching that keeps one frame's lead pattern.
 featured: true
 order: 1
+live: https://swingsmith.solutions
 ---
 
 A racket customization app for tennis players and stringers, built to be easier to use than the existing spec calculators. Each frame keeps its measured specs and a history of changes, and the app computes every new spec as a delta from that measured baseline.
@@ -24,4 +25,4 @@ The physics and the matcher first ran in a separate Python service on FastAPI, t
 
 ## Next
 
-Deploy it. The pipeline pushes both images to GHCR and deploys through a gate that rolls back on a failed health check.
+Swing analysis from video, with a customization recommendation based on that analysis. Not built yet.
