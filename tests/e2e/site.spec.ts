@@ -34,7 +34,7 @@ test.describe("pages", () => {
 
   test("home shows hero, stack, experience, projects, and notes", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Hi, I'm Kyle. I'm a software engineer.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Kyle Qin");
     await expect(page.locator(".rows .row")).toHaveCount(4);
     await expect(page.locator("#h-xp")).toHaveText("experience");
     await expect(page.locator(".sec .xp li")).toHaveCount(3);
