@@ -1,7 +1,7 @@
 ---
 import { SKILLS } from "../data/skills";
 
-// compact: the home page shows one line per domain with its first 4 items.
+// compact: the home page shows the tools in muted text.
 interface Props { compact?: boolean }
 const { compact = false } = Astro.props;
 ---
@@ -9,7 +9,7 @@ const { compact = false } = Astro.props;
   {SKILLS.map(({ domain, items }) => (
     <li class="dom">
       <h3>{domain}</h3>
-      <ul class="items">{(compact ? items.slice(0, 4) : items).map((it) => <li>{it}</li>)}</ul>
+      <ul class="items">{items.map((it) => <li>{it}</li>)}</ul>
     </li>
   ))}
 </ul>

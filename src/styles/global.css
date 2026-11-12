@@ -137,7 +137,7 @@ main.page { gap: 28px; }
 
 /* ---------- stack and experience ---------- */
 /* Stack: one ruled row per domain, label left and tools right (stacked on a phone).
-   Home (compact) shows the first 4 tools in muted text; /about shows all of them. */
+   Home (compact) shows the tools in muted text. */
 .skills { list-style: none; margin: 0; padding: 0; display: grid; }
 .skills .dom { display: grid; grid-template-columns: 11rem minmax(0, 1fr); align-items: baseline; gap: 2px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
 .skills .dom:last-child { border-bottom: 1px solid var(--line); }
