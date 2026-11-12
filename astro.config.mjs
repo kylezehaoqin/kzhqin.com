@@ -22,6 +22,6 @@ export default defineConfig({
   compressHTML: true,
   integrations: [mdx(), sitemap({ filter: (page) => hasNotes || !/\/notes(\/|$)/.test(new URL(page).pathname) })],
   markdown: {
-    shikiConfig: { themes: { light: "github-light", dark: "github-dark" } },
+    shikiConfig: { themes: { light: "github-light-high-contrast", dark: "github-dark" } },
   },
 });
