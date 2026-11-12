@@ -35,6 +35,14 @@
   --font-body: "Geist Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
+  /* Type scale. Every text role uses one of these steps. */
+  --text-meta: 12.5px;  /* mono: dates, tags, labels, section heads */
+  --text-code: 13.5px;  /* mono: tool lists, the email button */
+  --text-small: 15px;   /* sans: descriptions under a title, buttons */
+  --text-body: 16.5px;  /* sans: reading text */
+  --text-title: 18px;   /* display 800: list item titles, h3 */
+  --text-h2: 24px;      /* display 800: section headings in prose */
+
   --col: 720px;
   --measure: 32em; /* reading text, about 70 characters of Geist (65ch was the whole column: Geist's "0" is wide) */
   --sl-h: 26px;

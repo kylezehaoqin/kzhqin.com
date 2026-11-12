@@ -31,7 +31,7 @@ const notes = (await getNotes()).slice(0, 3);
     </section>
 
     <section class="sec" aria-labelledby="h-projects">
-      <div class="sec-h"><h2 id="h-projects">projects</h2><a href="/projects">all {all.length} →</a></div>
+      <div class="sec-h"><h2 id="h-projects">projects</h2><a href="/projects">all →</a></div>
       <ul class="rows">{projects.map((p) => <ProjectRow project={p} />)}</ul>
     </section>
 

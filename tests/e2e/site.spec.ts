@@ -87,17 +87,20 @@ test.describe("pages", () => {
     });
   }
 
-  test("/about: Experience is flush with its heading; paragraphs keep a reading measure", async ({ page }) => {
+  test("/about: Experience is flush with its heading; intro text keeps a reading measure and the column's left edge", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/about");
-    const { h2, xp, chars } = await page.evaluate(() => {
-      const p = document.querySelector(".prose > p")!;
+    const { h2, xp, dd, dt, chars } = await page.evaluate(() => {
+      const p = document.querySelector(".intro dd")!;
       const ctx = document.createElement("canvas").getContext("2d")!;
       ctx.font = getComputedStyle(p).font;
       const perChar = ctx.measureText(p.textContent!).width / p.textContent!.length;
-      return { h2: document.querySelector(".prose h2")!.getBoundingClientRect().left, xp: document.querySelector(".xp li")!.getBoundingClientRect().left, chars: p.getBoundingClientRect().width / perChar };
+      const left = (s: string) => document.querySelector(s)!.getBoundingClientRect().left;
+      return { h2: left(".prose h2"), xp: left(".xp li"), dd: left(".intro dd"), dt: document.querySelector(".intro dt")!.getBoundingClientRect().right, chars: p.getBoundingClientRect().width / perChar };
     });
     expect(Math.abs(xp - h2)).toBeLessThan(1);
+    expect(Math.abs(dd - h2)).toBeLessThan(1); // the labels hang in the margin; the text does not move
+    expect(dt).toBeLessThan(dd);
     expect(chars).toBeLessThanOrEqual(75);
   });
 
@@ -483,11 +486,14 @@ test.describe("projects and skills", () => {
   });
 
   for (const url of ["/", "/about"]) {
-    test(`${url} shows 3 skill domains, each linked to its projects`, async ({ page }) => {
+    test(`${url} shows 3 skill domains, each with its tools and no project links`, async ({ page }) => {
       await page.goto(url);
       const domains = page.locator(".skills .dom");
       await expect(domains).toHaveCount(3);
-      for (const d of await domains.all()) await expect(d.locator('a[href^="/projects/"]')).not.toHaveCount(0);
+      for (const d of await domains.all()) {
+        await expect(d.locator(".items li")).not.toHaveCount(0);
+        await expect(d.locator("a")).toHaveCount(0); // the "see <projects>" line was removed (Kyle, 2026-11-11)
+      }
     });
   }
 });

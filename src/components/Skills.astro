@@ -10,11 +10,10 @@ for (const { domain, proof } of SKILLS)
   for (const id of proof) if (!names.has(id)) throw new Error(`skills: "${domain}" names unknown project "${id}"`);
 ---
 <ul class:list={["skills", { compact }]}>
-  {SKILLS.map(({ domain, items, proof }) => (
+  {SKILLS.map(({ domain, items }) => (
     <li class="dom">
       <h3>{domain}</h3>
       <ul class="items">{(compact ? items.slice(0, 4) : items).map((it) => <li>{it}</li>)}</ul>
-      <p class="proof">see {proof.map((id, i) => <>{i > 0 && ", "}<a href={`/projects/${id}`}>{names.get(id)}</a></>)}</p>
     </li>
   ))}
 </ul>
