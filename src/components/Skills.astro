@@ -1,13 +1,9 @@
 ---
 import { SKILLS } from "../data/skills";
-import { getProjects } from "../lib/content";
 
-// compact: the home page shows only the first 4 items of each domain.
+// compact: the home page shows one line per domain with its first 4 items.
 interface Props { compact?: boolean }
 const { compact = false } = Astro.props;
-const names = new Map((await getProjects()).map((p) => [p.id, p.data.name]));
-for (const { domain, proof } of SKILLS)
-  for (const id of proof) if (!names.has(id)) throw new Error(`skills: "${domain}" names unknown project "${id}"`);
 ---
 <ul class:list={["skills", { compact }]}>
   {SKILLS.map(({ domain, items }) => (

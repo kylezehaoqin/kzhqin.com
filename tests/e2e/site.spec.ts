@@ -486,10 +486,10 @@ test.describe("projects and skills", () => {
   });
 
   for (const url of ["/", "/about"]) {
-    test(`${url} shows 3 skill domains, each with its tools and no project links`, async ({ page }) => {
+    test(`${url} shows 8 skill domains, each with its tools and no project links`, async ({ page }) => {
       await page.goto(url);
       const domains = page.locator(".skills .dom");
-      await expect(domains).toHaveCount(3);
+      await expect(domains).toHaveCount(8);
       for (const d of await domains.all()) {
         await expect(d.locator(".items li")).not.toHaveCount(0);
         await expect(d.locator("a")).toHaveCount(0); // the "see <projects>" line was removed (Kyle, 2026-11-11)

@@ -136,9 +136,12 @@ main.page { gap: 28px; }
 .chip.draft { color: var(--faint); background: transparent; border: 1px dashed var(--line); }
 
 /* ---------- stack and experience ---------- */
-.skills { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.skills .dom { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-.skills .dom h3 { margin: 0; font: 800 var(--text-title) var(--font-display); } /* beats .prose h3 on /about */
+/* Stack: one ruled row per domain, label left and tools right (stacked on a phone).
+   Home (compact) shows the first 4 tools in muted text; /about shows all of them. */
+.skills { list-style: none; margin: 0; padding: 0; display: grid; }
+.skills .dom { display: grid; grid-template-columns: 11rem minmax(0, 1fr); align-items: baseline; gap: 2px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.skills .dom:last-child { border-bottom: 1px solid var(--line); }
+.skills .dom h3 { margin: 0; font: 800 var(--text-small) var(--font-display); } /* beats .prose h3 on /about */
 /* One <li> per item, never split. Each item has its dot in front; the list is pulled
    left by one dot's width and clipped there, so the dot that would start a line is
    hidden and no line starts or ends on a stray separator. */
@@ -146,10 +149,8 @@ main.page { gap: 28px; }
 .skills .items li { white-space: nowrap; }
 .skills .items li::before { content: "·" / ""; display: inline-block; width: 1.4em; text-align: center; color: var(--faint); }
 .prose .skills { padding-left: 0; }
-.skills.compact { gap: 0; }
-.skills.compact .dom { gap: 2px; padding: 12px 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; }
-.skills.compact .dom:last-child { border-bottom: 1px solid var(--line); }
 .skills.compact .items { color: var(--muted); }
+@media (max-width: 560px) { .skills .dom { grid-template-columns: minmax(0, 1fr); } }
 .xp { list-style: none; margin: 0; padding: 0; }
 .xp li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
 .xp li:last-child { border-bottom: 1px solid var(--line); }
