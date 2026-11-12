@@ -208,6 +208,8 @@ pre.astro-code { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1
 :root[data-theme="dark"] .astro-code, :root[data-theme="dark"] .astro-code span {
   color: var(--shiki-dark) !important; font-style: var(--shiki-dark-font-style) !important; font-weight: var(--shiki-dark-font-weight) !important;
 }
+/* github-dark comments (#6A737D) are under 4.5:1 on the ink surface; lift them. */
+.astro-code span[style*="--shiki-dark:#6A737D"] { --shiki-dark: #959da5 !important; }
 
 .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .pager a { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; background: var(--surface); transition: border-color .2s; min-width: 0; }

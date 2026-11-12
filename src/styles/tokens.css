@@ -2,19 +2,19 @@
    unless the visitor picked a theme (data-theme), and again for an explicit pick.
    Source: prototype v3 + docs/design/2026-10-14-astro-spec.md section 2.1. */
 :root {
-  --bg: #f6f1e7; /* cream paper */
-  --surface: #fbf8f2;
-  --fg: #1b1915;
-  --muted: #655f55; /* 5.6:1 on paper */
-  --faint: #69635a; /* 5.3:1 on paper */
-  --line: #e4dccd;
-  --soft: #ede6d8;
-  --dot-rgb: 0, 0, 0;
-  --dot-a: 0.08;
+  --bg: #f3ebda; /* beige paper; Swingsmith's #f3eee7 is paler and pinker, keep them apart */
+  --surface: #faf5ea;
+  --fg: #1d1a14;
+  --muted: #615848; /* 5.9:1 on paper */
+  --faint: #655c4d; /* 5.5:1 on paper, 5.1:1 on soft */
+  --line: #dfd4be;
+  --soft: #ebe2cf;
+  --dot-rgb: 70, 50, 20;
+  --dot-a: 0.16;
   --glow-a: 0.3;
   --acc: #f0561d;
-  --acc-2: #d06a0c; /* gradient end: 3.24:1 on paper (large text) */
-  --acc-text: #b0390a; /* accent as text: >= 4.9:1 on paper, surface, soft, and chip tint */
+  --acc-2: #c9640a; /* gradient end: 3.33:1 on paper (large text) */
+  --acc-text: #b0390a; /* accent as text: >= 4.69:1 on paper, surface, soft, and chip tint */
   --acc-tint: rgba(240, 86, 29, 0.09);
   --acc-glow: rgba(240, 86, 29, 0.45);
   --ok: #2bb36b;
@@ -42,23 +42,23 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #101010; --surface: #161616; --fg: #ededed; --muted: #9a9a9a; --faint: #858585;
-    --line: #262626; --soft: #1b1b1b; --dot-rgb: 255, 255, 255; --dot-a: 0.07; --glow-a: 0.32;
+    --bg: #151821; --surface: #1b1f2a; --fg: #e8eaf2; --muted: #9da2b6; --faint: #8b90a4;
+    --line: #2a2f3d; --soft: #1f2330; --dot-rgb: 255, 255, 255; --dot-a: 0.07; --glow-a: 0.32;
     --acc: #ff7a45; --acc-2: #ffb15c; --acc-text: #ff7a45; --acc-tint: rgba(255, 122, 69, 0.12); --acc-glow: rgba(255, 122, 69, 0.55);
     --sl-bg: #181a26;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #101010; --surface: #161616; --fg: #ededed; --muted: #9a9a9a; --faint: #858585;
-  --line: #262626; --soft: #1b1b1b; --dot-rgb: 255, 255, 255; --dot-a: 0.07; --glow-a: 0.32;
+  --bg: #151821; --surface: #1b1f2a; --fg: #e8eaf2; --muted: #9da2b6; --faint: #8b90a4;
+  --line: #2a2f3d; --soft: #1f2330; --dot-rgb: 255, 255, 255; --dot-a: 0.07; --glow-a: 0.32;
   --acc: #ff7a45; --acc-2: #ffb15c; --acc-text: #ff7a45; --acc-tint: rgba(255, 122, 69, 0.12); --acc-glow: rgba(255, 122, 69, 0.55);
   --sl-bg: #181a26;
   color-scheme: dark;
 }
 
 /* Signal (cyan) accent, chosen with ":accent signal". */
-:root[data-accent="signal"] { --sl-acc: #7fd6ff; --acc: #0e8fb8; --acc-2: #1f9c86; --acc-text: #0a6a8a; --acc-tint: rgba(14, 143, 184, 0.09); --acc-glow: rgba(14, 143, 184, 0.4); }
+:root[data-accent="signal"] { --sl-acc: #7fd6ff; --acc: #0e8fb8; --acc-2: #178a76; --acc-text: #0a6a8a; --acc-tint: rgba(14, 143, 184, 0.09); --acc-glow: rgba(14, 143, 184, 0.4); }
 @media (prefers-color-scheme: dark) {
   :root[data-accent="signal"]:not([data-theme="light"]) { --acc: #7fd6ff; --acc-2: #b6f0d9; --acc-text: #7fd6ff; --acc-tint: rgba(127, 214, 255, 0.1); --acc-glow: rgba(127, 214, 255, 0.5); }
 }
